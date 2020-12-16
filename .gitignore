@@ -1,4 +1,5 @@
 idea/
 venv/
+testvenv/
 david_tlaskal.pickle
 loader.py
