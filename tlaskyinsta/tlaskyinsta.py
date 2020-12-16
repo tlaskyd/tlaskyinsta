@@ -1,4 +1,5 @@
 import json
+from urllib.parse import urljoin
 from requests import Session, Response
 from instaloader import (
     Instaloader,
@@ -14,6 +15,7 @@ from .notification import Notification
 class TlaskyInsta:
     def __init__(self, loader: Instaloader = None):
         self.loader = loader or Instaloader(sleep=False, quiet=True)
+        self.base_url = 'https://instagram.com/'
 
     def __repr__(self):
         return f'{self.__class__.__name__}(loader={self.loader})'
@@ -24,29 +26,47 @@ class TlaskyInsta:
 
     @property
     def loader_session(self) -> Session:
+        # Accessing private attribute of InstaloaderContext
         return getattr(self.loader.context, '_session')
 
     @staticmethod
     def _status_check(response: Response):
+        # Raise exception if bad response
         try:
             assert response.json().get('status') == 'ok'
         except (json.JSONDecodeError, AssertionError):
             raise InvalidResponse(f'Invalid response.\n{response.text}')
+
+    def url_for(self, *args: Any) -> str:
+        return urljoin(
+            self.base_url,
+            '/'.join(str(arg) for arg in args)
+        )
 
     """
     Posts
     """
 
     def like_post(self, post: Post):
-        response = self.loader_session.post(
-            f'https://www.instagram.com/web/likes/{post.mediaid}/like/'
-        )
+        """
+        Like post.
+        :param post:
+        :return:
+        """
+        response = self.loader_session.post(self.url_for(
+            'web', 'likes', post.mediaid, 'like'
+        ))
         self._status_check(response)
 
     def unlike_post(self, post: Post):
-        response = self.loader_session.post(
-            f'https://www.instagram.com/web/likes/{post.mediaid}/unlike/'
-        )
+        """
+        Unlike post.
+        :param post:
+        :return:
+        """
+        response = self.loader_session.post(self.url_for(
+            'web', 'likes', post.mediaid, 'unlike'
+        ))
         self._status_check(response)
 
     """
@@ -54,8 +74,17 @@ class TlaskyInsta:
     """
 
     def comment(self, post: Post, text: str, reply_to: Union[PostComment, PostCommentAnswer, None] = None):
+        """
+        Add comment.
+        :param post:
+        :param text:
+        :param reply_to:
+        :return:
+        """
         response = self.loader_session.post(
-            f'https://www.instagram.com/web/comments/{post.mediaid}/add/',
+            self.url_for(
+                'web', 'comments', post.mediaid, 'add'
+            ),
             data=dict(
                 comment_text=text,
                 replied_to_comment_id=reply_to.id if reply_to else None
@@ -64,23 +93,39 @@ class TlaskyInsta:
         self._status_check(response)
 
     def delete_comment(self, post: Post, comment: Union[PostComment, PostCommentAnswer]):
-        response = self.loader_session.post(
-            f'https://www.instagram.com/web/comments/{post.mediaid}/delete/{comment.id}/'
-        )
+        """
+        Remove comment.
+        :param post:
+        :param comment:
+        :return:
+        """
+        response = self.loader_session.post(self.url_for(
+            'web', 'comments', post.mediaid, 'delete', comment.id
+        ))
         self._status_check(response)
 
     def like_comment(self, comment: Union[PostComment, PostCommentAnswer]):
         # TODO: Fix... For some reason does not work
-        response = self.loader_session.post(
-            f'https://www.instagram.com/web/comments/like/{comment.id}/'
-        )
+        """
+        Like comment or comment response.
+        :param comment:
+        :return:
+        """
+        response = self.loader_session.post(self.url_for(
+            'web', 'comments', 'like', comment.id
+        ))
         self._status_check(response)
 
     def unlike_comment(self, comment: Union[PostComment, PostCommentAnswer]):
         # TODO: Fix... Same as like_comment(...)
-        response = self.loader_session.post(
-            f'https://www.instagram.com/web/comments/unlike/{comment.id}/'
-        )
+        """
+        Unlike comment or comment response.
+        :param comment:
+        :return:
+        """
+        response = self.loader_session.post(self.url_for(
+            'web', 'comments', 'unlike', comment.id
+        ))
         self._status_check(response)
 
     """
@@ -88,15 +133,25 @@ class TlaskyInsta:
     """
 
     def follow(self, profile: Profile):
-        response = self.loader_session.post(
-            f'https://www.instagram.com/web/friendships/{profile.userid}/follow/'
-        )
+        """
+        Follow user.
+        :param profile:
+        :return:
+        """
+        response = self.loader_session.post(self.url_for(
+            'web', 'friendships', profile.userid, 'follow'
+        ))
         self._status_check(response)
 
     def unfollow(self, profile: Profile):
-        response = self.loader_session.post(
-            f'https://www.instagram.com/web/friendships/{profile.userid}/unfollow/'
-        )
+        """
+        Unfollow user.
+        :param profile:
+        :return:
+        """
+        response = self.loader_session.post(self.url_for(
+            'web', 'friendships', profile.userid, 'unfollow'
+        ))
         self._status_check(response)
 
     """
@@ -104,8 +159,9 @@ class TlaskyInsta:
     """
 
     def _activity(self) -> Dict[str, Any]:
+        # Activity json shortcut.
         response = self.loader_session.get(
-            'https://www.instagram.com/accounts/activity/',
+            self.url_for('accounts', 'activity'),
             params=json_params()
         )
         return multi_keys(
@@ -114,6 +170,10 @@ class TlaskyInsta:
         )
 
     def notifications(self) -> List[Notification]:
+        """
+        Get notifications.
+        :return:
+        """
         return [
             Notification.from_dict(self.loader.context, notification_dct)
             for notification_dct in multi_keys(
@@ -123,6 +183,11 @@ class TlaskyInsta:
         ]
 
     def follow_requests(self) -> Dict[str, Any]:
+        # TODO: Please send me your follow request json. My ig profile is public, so I don't know it's structure.
+        """
+        Follow requests.
+        :return:
+        """
         return multi_keys(
             self._activity(),
             'edge_follow_requests', 'edges'

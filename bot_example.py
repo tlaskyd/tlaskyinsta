@@ -1,16 +1,15 @@
-import os
 from typing import *
 from tlaskyinsta import *
 from instaloader import *
 from datetime import datetime
 from random import uniform, choices
 
+try:
+    from loader import loader, session_file
+except ImportError:
+    from loader_example import loader, session_file
 
-
-insta = TlaskyInsta()
-loader = insta.loader
-
-
+insta = TlaskyInsta(loader)
 
 tags = 'czechgirl slovakgirl czechwomen slovakwomen nature czechnature slovaknature'.split()
 locations = [
@@ -22,7 +21,7 @@ follow_back = False
 
 while True:
     try:
-        # Like new comments
+        # React to notifications
         last_notification_at: Union[None, datetime] = None
         for notification in insta.notifications():
             # datetime.datetime compare
