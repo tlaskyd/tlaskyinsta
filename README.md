@@ -20,4 +20,4 @@ Please send me your activity json. My ig profile is public, so I don't know stru
 
 ## Installation
 
-pip install git+https://github.io/tlaskyd/
+pip install git+https://github.com/tlaskyd/tlaskyinsta
