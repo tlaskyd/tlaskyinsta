@@ -11,7 +11,7 @@ allows you to:
 * Get last notifications
 * Get last follow requests
 
-[[bmc]: https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee%20&emoji=&slug=tlasky&button_colour=000000 &font_colour=ffffff &font_family=Lato &outline_colour=ffffff &coffee_colour=ff00ff](http://tlasky.herokuapp.com/redirect?next=https://www.buymeacoffee.com/tlasky)
+[[bmc]: https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee%20&emoji=&slug=tlasky&button_colour=000000 &font_colour=ffffff &font_family=Lato &outline_colour=ffffff &coffee_colour=ff00ff "Buy me a coffee"](http://tlasky.herokuapp.com/redirect?next=https://www.buymeacoffee.com/tlasky)
 
 ## Usage
 See example in bot_example.py and loader_example.py
