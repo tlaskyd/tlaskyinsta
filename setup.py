@@ -14,9 +14,7 @@ setuptools.setup(
     url='https://github.com/tlaskyd/tlaskyinsta',
     packages=['tlaskyinsta'],
     classifiers=[
-        'Programming Language :: Python :: 3',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
+        'MIT License',
     ],
     python_requires='>=3.7.3',
 )
