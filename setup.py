@@ -13,8 +13,6 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url='https://github.com/tlaskyd/tlaskyinsta',
     packages=['tlaskyinsta'],
-    classifiers=[
-        'MIT License',
-    ],
+    classifiers=['MIT License'],
     python_requires='>=3.7.3',
 )
