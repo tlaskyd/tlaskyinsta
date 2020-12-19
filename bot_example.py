@@ -13,6 +13,12 @@ except ImportError:
 loader = Instaloader()
 insta = TlaskyInsta(loader)
 
+"""
+OR
+insta = TlaskyInsta()
+loader = insta.loader
+"""
+
 if os.path.isfile(session_filepath):
     # Loading session using Instaloader does not work for me (Some linux bs.), so I made this.
     insta.load_session(username, session_filepath)
@@ -39,7 +45,6 @@ while True:
             if last_notification_at and last_notification_at > notification.at:
                 break
             last_notification_at = notification.at
-
             if like_comments and notification.type is NotificationType.COMMENT:
                 print('Liking comment:', notification.media)
                 insta.like_comment(notification.media)
