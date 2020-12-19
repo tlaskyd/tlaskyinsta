@@ -21,7 +21,7 @@ loader = insta.loader
 
 if os.path.isfile(session_filepath):
     # Loading session using Instaloader does not work for me (Some linux bs.), so I made this.
-    insta.load_session(username, session_filepath)
+    insta.load_session(session_filepath)
 else:
     loader.login(username, password)
     insta.save_session(session_filepath)

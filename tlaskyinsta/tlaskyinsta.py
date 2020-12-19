@@ -34,11 +34,14 @@ class TlaskyInsta:
     def save_session(self, path: str):
         with open(path, 'w') as file:
             json.dump(
-                dict_from_cookiejar(self.loader_session.cookies), file,
+                dict(
+                    username=self.loader.context.username,
+                    **dict_from_cookiejar(self.loader_session.cookies)
+                ), file,
                 indent=4, sort_keys=True
             )
 
-    def load_session(self, username: str, path: str):
+    def load_session(self, path: str):
         with open(path, 'r') as file:
             self.loader_session.cookies = cookiejar_from_dict(json.load(file))
         headers: Dict[str, Any] = getattr(self.loader.context, '_default_http_header')()
@@ -48,7 +51,7 @@ class TlaskyInsta:
             self.loader_session.request,
             timeout=self.loader.context.request_timeout
         )
-        self.loader.context.username = username
+        self.loader.context.username = self.loader_session.cookies.get_dict()['username']
 
     @staticmethod
     def _status_check(response: requests.Response):
