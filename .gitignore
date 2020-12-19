@@ -1,5 +1,5 @@
 idea/
 venv/
 testvenv/
-david_tlaskal.pickle
-loader.py
+david_tlaskal.json
+credentials.py

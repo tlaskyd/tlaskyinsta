@@ -1,3 +1,4 @@
+import os
 from typing import *
 from tlaskyinsta import *
 from instaloader import *
@@ -5,11 +6,21 @@ from datetime import datetime
 from random import uniform, choices
 
 try:
-    from loader import loader, session_file
+    from credentials import username, password, session_filepath
 except ImportError:
-    from loader_example import loader, session_file
+    from credentials_example import username, password, session_filepath
 
+loader = Instaloader()
 insta = TlaskyInsta(loader)
+
+if os.path.isfile(session_filepath):
+    # Loading session using Instaloader does not work for me (Some linux bs.), so I made this.
+    insta.load_session(username, session_filepath)
+else:
+    loader.login(username, password)
+    insta.save_session(session_filepath)
+
+assert loader.test_login(), 'Bad session or credentials.'
 
 tags = 'czechgirl slovakgirl czechwomen slovakwomen nature czechnature slovaknature'.split()
 locations = [
@@ -57,5 +68,5 @@ while True:
                 wait(minutes(uniform(10, 15)))
         wait(hours(uniform(1 / 4, 1 / 2)))
     except KeyboardInterrupt:
-        loader.save_session_to_file(session_file)
+        insta.save_session(session_filepath)
         break

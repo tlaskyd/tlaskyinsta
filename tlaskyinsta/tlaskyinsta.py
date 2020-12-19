@@ -1,6 +1,7 @@
 import json
+import requests
 from urllib.parse import urljoin
-from requests import Session, Response
+from requests.utils import dict_from_cookiejar, cookiejar_from_dict
 from instaloader import (
     Instaloader,
     Post, PostComment, PostCommentAnswer,
@@ -25,12 +26,31 @@ class TlaskyInsta:
     """
 
     @property
-    def loader_session(self) -> Session:
+    def loader_session(self) -> requests.Session:
         # Accessing private attribute of InstaloaderContext
         return getattr(self.loader.context, '_session')
 
+    @loader_session.setter
+    def loader_session(self, session: requests.Session):
+        setattr(self.loader.context, '_session', session)
+
+    def save_session(self, path: str):
+        with open(path, 'w') as file:
+            json.dump(
+                dict_from_cookiejar(self.loader_session.cookies), file,
+                indent=4, sort_keys=True
+            )
+
+    def load_session(self, username: str, path: str):
+        with open(path, 'r') as file:
+            self.loader_session.cookies = cookiejar_from_dict(json.load(file))
+            headers: Dict[str, Any] = getattr(self.loader.context, '_default_http_header')()
+            headers['csrftoken'] = self.loader_session.cookies.get_dict()['csrftoken']
+            self.loader_session.headers.update(headers)
+            self.loader.context.username = username
+
     @staticmethod
-    def _status_check(response: Response):
+    def _status_check(response: requests.Response):
         # Raise exception if bad response
         try:
             assert response.json().get('status') == 'ok'
