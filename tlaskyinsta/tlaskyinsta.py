@@ -41,14 +41,14 @@ class TlaskyInsta:
     def load_session(self, username: str, path: str):
         with open(path, 'r') as file:
             self.loader_session.cookies = cookiejar_from_dict(json.load(file))
-            headers: Dict[str, Any] = getattr(self.loader.context, '_default_http_header')()
-            headers['csrftoken'] = self.loader_session.cookies.get_dict()['csrftoken']
-            self.loader_session.headers.update(headers)
-            self.loader_session.request = partial(
-                self.loader_session.request,
-                timeout=self.loader.context.request_timeout
-            )
-            self.loader.context.username = username
+        headers: Dict[str, Any] = getattr(self.loader.context, '_default_http_header')()
+        headers['csrftoken'] = self.loader_session.cookies.get_dict()['csrftoken']
+        self.loader_session.headers.update(headers)
+        self.loader_session.request = partial(
+            self.loader_session.request,
+            timeout=self.loader.context.request_timeout
+        )
+        self.loader.context.username = username
 
     @staticmethod
     def _status_check(response: requests.Response):
