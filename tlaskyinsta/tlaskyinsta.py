@@ -1,5 +1,6 @@
 import json
 import requests
+from functools import partial
 from urllib.parse import urljoin
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
 from instaloader import (
@@ -30,10 +31,6 @@ class TlaskyInsta:
         # Accessing private attribute of InstaloaderContext
         return getattr(self.loader.context, '_session')
 
-    @loader_session.setter
-    def loader_session(self, session: requests.Session):
-        setattr(self.loader.context, '_session', session)
-
     def save_session(self, path: str):
         with open(path, 'w') as file:
             json.dump(
@@ -47,6 +44,10 @@ class TlaskyInsta:
             headers: Dict[str, Any] = getattr(self.loader.context, '_default_http_header')()
             headers['csrftoken'] = self.loader_session.cookies.get_dict()['csrftoken']
             self.loader_session.headers.update(headers)
+            self.loader_session.request = partial(
+                self.loader_session.request,
+                timeout=self.loader.context.request_timeout
+            )
             self.loader.context.username = username
 
     @staticmethod
@@ -58,6 +59,7 @@ class TlaskyInsta:
             raise InvalidResponse(f'Invalid response.\n{response.text}')
 
     def url_for(self, *args: Any) -> str:
+        # Building urls using base_url, and args
         return urljoin(
             self.base_url,
             '/'.join(str(arg) for arg in args)
