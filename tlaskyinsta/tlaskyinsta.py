@@ -1,5 +1,6 @@
 import json
 import requests
+from http import HTTPStatus
 from functools import partial
 from urllib.parse import urljoin
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
@@ -59,7 +60,8 @@ class TlaskyInsta:
         try:
             assert response.json().get('status') == 'ok'
         except (json.JSONDecodeError, AssertionError):
-            raise InvalidResponse(f'Invalid response.\n{response.text}')
+            status = HTTPStatus(response.status_code)
+            raise InvalidResponse(f'Invalid response.\nStatus: {status.description}\n{response.text}')
 
     def url_for(self, *args: Any) -> str:
         # Building urls using base_url, and args
