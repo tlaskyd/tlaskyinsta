@@ -60,12 +60,12 @@ while True:
             print('Loading posts for hashtag:', tag)
             tag_posts = gen_to_list(loader.get_hashtag_posts(tag), 50)
             posts.update(choices(tag_posts, k=20))
-        # wait(minutes(uniform(1, 5)))
+        wait(minutes(uniform(1, 5)))
         for loc in locations:
             print('Loading posts for location:', loc)
             loc_posts = gen_to_list(loader.get_location_posts(str(loc)), 50)
             posts.update(choices(loc_posts, k=20))
-        # wait(minutes(uniform(1, 5)))
+        wait(minutes(uniform(1, 5)))
         for i, post in enumerate(posts):
             if not post.viewer_has_liked:
                 print(f'Liking post [{i + 1}/{len(posts)}]:', post)

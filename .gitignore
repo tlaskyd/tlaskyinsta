@@ -1,5 +1,9 @@
 idea/
 venv/
+
 testvenv/
-david_tlaskal.json
+test.py
+
+david_tlaskal.*
+
 credentials.py

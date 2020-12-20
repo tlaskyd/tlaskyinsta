@@ -28,7 +28,7 @@ class TlaskyInsta:
     """
 
     @property
-    def loader_session(self) -> requests.Session:
+    def session(self) -> requests.Session:
         # Accessing private attribute of InstaloaderContext
         return getattr(self.loader.context, '_session')
 
@@ -37,22 +37,22 @@ class TlaskyInsta:
             json.dump(
                 dict(
                     username=self.loader.context.username,
-                    **dict_from_cookiejar(self.loader_session.cookies)
+                    **dict_from_cookiejar(self.session.cookies)
                 ), file,
                 indent=4, sort_keys=True
             )
 
     def load_session(self, path: str):
         with open(path, 'r') as file:
-            self.loader_session.cookies = cookiejar_from_dict(json.load(file))
+            self.session.cookies = cookiejar_from_dict(json.load(file))
         headers: Dict[str, Any] = getattr(self.loader.context, '_default_http_header')()
-        headers['csrftoken'] = self.loader_session.cookies.get_dict()['csrftoken']
-        self.loader_session.headers.update(headers)
-        self.loader_session.request = partial(
-            self.loader_session.request,
+        headers['csrftoken'] = self.session.cookies.get_dict()['csrftoken']
+        self.session.headers.update(headers)
+        self.session.request = partial(
+            self.session.request,
             timeout=self.loader.context.request_timeout
         )
-        self.loader.context.username = self.loader_session.cookies.get_dict()['username']
+        self.loader.context.username = self.session.cookies.get_dict()['username']
 
     @staticmethod
     def _status_check(response: requests.Response):
@@ -61,7 +61,12 @@ class TlaskyInsta:
             assert response.json().get('status') == 'ok'
         except (json.JSONDecodeError, AssertionError):
             status = HTTPStatus(response.status_code)
-            raise InvalidResponse(f'Invalid response.\nStatus: {status.description}\n{response.text}')
+            raise InvalidResponse(
+                f'Invalid response.'
+                f'\nURL: {response.url}'
+                f'\nStatus: {status.phrase} - {status.description}'
+                f'\n{response.text}'
+            )
 
     def url_for(self, *args: Any) -> str:
         # Building urls using base_url, and args
@@ -80,7 +85,7 @@ class TlaskyInsta:
         :param post:
         :return:
         """
-        response = self.loader_session.post(self.url_for(
+        response = self.session.post(self.url_for(
             'web', 'likes', post.mediaid, 'like'
         ))
         self._status_check(response)
@@ -91,7 +96,7 @@ class TlaskyInsta:
         :param post:
         :return:
         """
-        response = self.loader_session.post(self.url_for(
+        response = self.session.post(self.url_for(
             'web', 'likes', post.mediaid, 'unlike'
         ))
         self._status_check(response)
@@ -100,7 +105,7 @@ class TlaskyInsta:
     Comments
     """
 
-    def comment(self, post: Post, text: str, reply_to: Union[PostComment, PostCommentAnswer, None] = None):
+    def add_comment(self, post: Post, text: str, reply_to: Union[PostComment, PostCommentAnswer, None] = None):
         """
         Add comment.
         :param post:
@@ -108,7 +113,7 @@ class TlaskyInsta:
         :param reply_to:
         :return:
         """
-        response = self.loader_session.post(
+        response = self.session.post(
             self.url_for(
                 'web', 'comments', post.mediaid, 'add'
             ),
@@ -126,7 +131,7 @@ class TlaskyInsta:
         :param comment:
         :return:
         """
-        response = self.loader_session.post(self.url_for(
+        response = self.session.post(self.url_for(
             'web', 'comments', post.mediaid, 'delete', comment.id
         ))
         self._status_check(response)
@@ -138,7 +143,7 @@ class TlaskyInsta:
         :param comment:
         :return:
         """
-        response = self.loader_session.post(self.url_for(
+        response = self.session.post(self.url_for(
             'web', 'comments', 'like', comment.id
         ))
         self._status_check(response)
@@ -150,7 +155,7 @@ class TlaskyInsta:
         :param comment:
         :return:
         """
-        response = self.loader_session.post(self.url_for(
+        response = self.session.post(self.url_for(
             'web', 'comments', 'unlike', comment.id
         ))
         self._status_check(response)
@@ -165,7 +170,7 @@ class TlaskyInsta:
         :param profile:
         :return:
         """
-        response = self.loader_session.post(self.url_for(
+        response = self.session.post(self.url_for(
             'web', 'friendships', profile.userid, 'follow'
         ))
         self._status_check(response)
@@ -176,7 +181,7 @@ class TlaskyInsta:
         :param profile:
         :return:
         """
-        response = self.loader_session.post(self.url_for(
+        response = self.session.post(self.url_for(
             'web', 'friendships', profile.userid, 'unfollow'
         ))
         self._status_check(response)
@@ -187,7 +192,7 @@ class TlaskyInsta:
 
     def _activity(self) -> Dict[str, Any]:
         # Activity json shortcut.
-        response = self.loader_session.get(
+        response = self.session.get(
             self.url_for('accounts', 'activity'),
             params=json_params()
         )
