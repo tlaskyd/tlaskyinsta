@@ -16,7 +16,7 @@ An example can be found at **bot.py**, and Instaloader's documentation can be al
 
 ## Contacts
 
-(http://tlasky.herokuapp.com/)[tlasky]
+http://tlasky.herokuapp.com/
 
 ## Installation
 
