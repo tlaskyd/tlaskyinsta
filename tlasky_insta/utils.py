@@ -15,7 +15,7 @@ def multikeys(dct: Dict[str, Any], *keys: str, default: Any = None) -> Any:
     return result
 
 
-def iterlist(iter: [Iterable], n: int = 0) -> List[Any]:
+def iterlist(iter: Iterable, n: int = 0) -> List[Any]:
     return list(iter) if not n else [
         next(iter)
         for _ in range(n)
