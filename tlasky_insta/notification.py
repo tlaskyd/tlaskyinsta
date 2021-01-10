@@ -13,7 +13,12 @@ class NotificationType(Enum):
     COMMENT_MENTION = 5
 
 
-class Notification:
+class BaseModel:
+    def __repr__(self):
+        return self.__class__.__name__ + '(' + ', '.join(f'{key}={value}' for key, value in self.__dict__.items()) + ')'
+
+
+class Notification(BaseModel):
     def __init__(self, notification_type: NotificationType, at: datetime, userid: int, shortcode: Union[None, str],
                  text: Union[None, str]):
         self.type = notification_type
@@ -21,9 +26,6 @@ class Notification:
         self.userid = userid
         self.shortcode = shortcode
         self.text = text
-
-    def __repr__(self):
-        return self.__class__.__name__ + '(' + ', '.join(f'{key}={value}' for key, value in self.__dict__.items()) + ')'
 
     @classmethod
     def from_dict(cls, dct) -> 'Notification':
