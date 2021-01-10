@@ -14,21 +14,21 @@ class NotificationType(Enum):
 
 
 class Notification:
-    def __init__(self, type: NotificationType, at: datetime, userid: int, shortcode: Union[None, str],
+    def __init__(self, notification_type: NotificationType, at: datetime, userid: int, shortcode: Union[None, str],
                  text: Union[None, str]):
-        self.type = type
+        self.type = notification_type
         self.at = at
         self.userid = userid
         self.shortcode = shortcode
         self.text = text
 
-    def __str__(self):
+    def __repr__(self):
         return self.__class__.__name__ + '(' + ', '.join(f'{key}={value}' for key, value in self.__dict__.items()) + ')'
 
     @classmethod
     def from_dict(cls, dct) -> 'Notification':
         return Notification(
-            type=NotificationType(multikeys(dct, 'node', 'type')),
+            notification_type=NotificationType(multikeys(dct, 'node', 'type')),
             at=datetime.fromtimestamp(multikeys(dct, 'node', 'timestamp')),
             userid=multikeys(dct, 'node', 'user', 'id'),
             shortcode=multikeys(dct, 'node', 'media', 'shortcode'),
