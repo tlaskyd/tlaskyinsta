@@ -65,7 +65,9 @@ while True:
             # Like posts
             for post in posts:
                 print('Liking ', f'https://instagram.com/p/{post.shortcode}')
-                insta.like_post(post)
+                post = insta.like_post(post)
+                if not post.viewer_has_liked:
+                    print(f'Liking is probably blocked. Please delete "{session_path}" and re-login.')
                 wait(random.uniform(60 * 15, 60 * 20))
         else:
             time.sleep(0.5)

@@ -7,6 +7,8 @@ from requests import Session, Response
 from .utils import multikeys
 from .notification import Notification
 
+PostCommentType = Union[PostComment, PostCommentAnswer]
+
 
 class TlaskyInsta:
     def __init__(self, loader: Instaloader):
@@ -40,7 +42,7 @@ class TlaskyInsta:
         ))
         return Post.from_mediaid(self.loader.context, post.mediaid)
 
-    def comment_post(self, post: Post, text: str, reply_to: PostCommentAnswer = None) -> PostCommentAnswer:
+    def comment_post(self, post: Post, text: str, reply_to: PostCommentType = None) -> PostCommentType:
         response = self._check_response(self.session.post(
             f'https://www.instagram.com/web/comments/{post.mediaid}/add/',
             data=dict(
@@ -56,17 +58,17 @@ class TlaskyInsta:
             likes_count=0
         )
 
-    def uncomment_post(self, post: Post, comment: PostCommentAnswer):
+    def uncomment_post(self, post: Post, comment: PostCommentType):
         self._check_response(self.session.post(
             f'https://www.instagram.com/web/comments/{post.mediaid}/delete/{comment.id}/'
         ))
 
-    def like_comment(self, comment: PostCommentAnswer):
+    def like_comment(self, comment: PostCommentType):
         self._check_response(self.session.post(
             f'https://www.instagram.com/web/comments/like/{comment.id}/'
         ))
 
-    def unlike_comment(self, comment: PostCommentAnswer):
+    def unlike_comment(self, comment: PostCommentType):
         self._check_response(self.session.post(
             f'https://www.instagram.com/web/comments/unlike/{comment.id}/'
         ))
