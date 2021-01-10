@@ -26,46 +26,49 @@ if loader.context.username != tlasky:
 
 while True:
     try:
-        # Process notifications
-        notifications_at: Union[None, datetime] = None
-        for notification in insta.get_notifications():
-            if not notifications_at or notifications_at < notification.at:
-                # Process comments and comments mentions
-                if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):
-                    post = notification.get_media(loader.context)
-                    for comment in post.get_comments():
-                        if comment.text == notification.text:
-                            insta.like_comment(comment)
-        notifications_at = datetime.now()
-        insta.mark_notifications(notifications_at)
+        # Have a pause over night
+        if 7 < datetime.now().hour <= 23:
+            # Process notifications
+            notifications_at: Union[None, datetime] = None
+            for notification in insta.get_notifications():
+                if not notifications_at or notifications_at < notification.at:
+                    # Process comments and comments mentions
+                    if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):
+                        post = notification.get_media(loader.context)
+                        for comment in post.get_comments():
+                            if comment.text == notification.text:
+                                insta.like_comment(comment)
+            notifications_at = datetime.now()
+            insta.mark_notifications(notifications_at)
 
-        # Load posts
-        posts = set()
-        random.shuffle(tags)
-        for tag in tags:
-            tag_posts = iterlist(
-                loader.get_hashtag_posts(tag),
-                10
-            )
-            posts.update(tag_posts)
-            wait(random.uniform(60, 60 * 2))
-        random.shuffle(locations)
-        for loc in locations:
-            loc_posts = iterlist(
-                loader.get_location_posts(loc),
-                10
-            )
-            posts.update(loc_posts)
-            wait(random.uniform(60, 60 * 2))
-        posts = list(posts)
-        random.shuffle(posts)
+            # Load posts
+            posts = set()
+            random.shuffle(tags)
+            for tag in tags:
+                tag_posts = iterlist(
+                    loader.get_hashtag_posts(tag),
+                    10
+                )
+                posts.update(tag_posts)
+                wait(random.uniform(60, 60 * 2))
+            random.shuffle(locations)
+            for loc in locations:
+                loc_posts = iterlist(
+                    loader.get_location_posts(loc),
+                    10
+                )
+                posts.update(loc_posts)
+                wait(random.uniform(60, 60 * 2))
+            posts = list(posts)
+            random.shuffle(posts)
 
-        # Like posts
-        for post in posts:
-            print('Liking ', f'https://instagram.com/p/{post.shortcode}')
-            insta.like_post(post)
-            wait(random.uniform(60 * 10, 60 * 15))
-
+            # Like posts
+            for post in posts:
+                print('Liking ', f'https://instagram.com/p/{post.shortcode}')
+                insta.like_post(post)
+                wait(random.uniform(60 * 15, 60 * 20))
+        else:
+            time.sleep(0.5)
     except (
             KeyboardInterrupt,
             LoginRequiredException, TwoFactorAuthRequiredException,
