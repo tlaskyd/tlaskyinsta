@@ -44,6 +44,7 @@ def notifications():
 
 
 def load_posts(interests: List[Union[str, int]]) -> List[Post]:
+    print('Loading posts.')
     posts = set()
     random.shuffle(interests)
     for item in interests:
