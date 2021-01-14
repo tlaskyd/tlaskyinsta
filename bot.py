@@ -44,6 +44,7 @@ def notifications():
 
 
 def load_posts() -> List[Post]:
+    global interests
     posts = set()
     random.shuffle(interests)
     for item in interests:
