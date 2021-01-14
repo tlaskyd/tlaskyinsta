@@ -96,12 +96,12 @@ class TlaskyInsta:
             )
         ))
 
-    def get_notifications(self) -> List[Notification]:
+    def get_notifications(self, reels: bool = False) -> List[Notification]:
         response = self._check_response(self.session.get(
             'https://www.instagram.com/accounts/activity/',
             params={
                 '__a': 1,
-                'include_reel': 'true'
+                'include_reel': str(reels).lower()
             }
         ))
         return [
@@ -113,7 +113,6 @@ class TlaskyInsta:
         ]
 
     def mark_notifications(self, from_date: datetime = None):
-        # TODO: Test
         self._check_response(self.session.post(
             'https://www.instagram.com/web/activity/mark_checked/',
             data=dict(

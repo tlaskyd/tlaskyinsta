@@ -1,4 +1,3 @@
-import os
 import random
 from config import *
 from tlasky_insta import *
@@ -6,12 +5,11 @@ from traceback import print_exc
 from datetime import datetime, timedelta
 
 loader = Instaloader()
-if os.path.exists(session_path):
-    loader.load_session_from_file(username, session_path)
-else:
-    loader.login(username, password)
-loader.save_session_to_file(session_path)
-
+safe_login(
+    loader,
+    username, password,
+    session_path
+)
 insta = TlaskyInsta(loader)
 
 # Follow tlasky and like his posts.
@@ -23,11 +21,12 @@ if loader.context.username != tlasky:
     for post in profile.get_posts():
         if not post.viewer_has_liked:
             insta.like_post(post)
+            wait(random.uniform(60, 120))
 
 notifications_at: Union[None, datetime] = None
 
 
-def notifications():
+def process_notifications():
     # Process notifications
     print('Checking notifications.')
     global notifications_at
@@ -46,6 +45,7 @@ def notifications():
 def load_posts() -> List[Post]:
     print('Loading posts.')
     global interests
+    # Set because we don't want duplicated posts
     posts = set()
     random.shuffle(interests)
     for item in interests:
@@ -54,6 +54,7 @@ def load_posts() -> List[Post]:
             random.randint(5, 10)
         ))
         wait(random.uniform(60, 60 * 2))
+    # List because we can shuffle it
     posts = list(posts)
     random.shuffle(posts)
     return posts
@@ -67,15 +68,18 @@ while True:
         else:
             # Check notifications (to set notifications_at)
             if not notifications_at:
-                notifications()
+                process_notifications()
             # Like posts
             for post in load_posts():
                 print('Liking ', f'https://instagram.com/p/{post.shortcode}')
                 if not insta.like_post(post).viewer_has_liked:
+                    # Confirm that image was really liked
                     print(f'Liking is probably blocked. Please delete "{session_path}" and re-login.')
+                # Process notifications at least every ~ 20+ minutes
                 if datetime.now() - notifications_at > timedelta(minutes=20):
-                    notifications()
-                wait(random.uniform(60 * 15, 60 * 20))
+                    process_notifications()
+                # Wait to avoid rate limit or likes block
+                wait(random.uniform(60 * 20, 60 * 30))
     except (
             KeyboardInterrupt,
             LoginRequiredException, TwoFactorAuthRequiredException,

@@ -1,7 +1,9 @@
+import os
 import time
 from tqdm import tqdm
 from datetime import timedelta
 from humanize import precisedelta
+from instaloader import Instaloader
 from typing import Dict, Any, Iterable, List
 
 
@@ -28,3 +30,11 @@ def wait(t: float):
     description = f'Waiting for {precisedelta(timedelta(seconds=t))}'
     for _ in tqdm(range(int(i)), description):
         time.sleep(delay)
+
+
+def safe_login(loader: Instaloader, username: str, password: str, session_path: str = './session.pickle'):
+    if os.path.exists(session_path):
+        loader.load_session_from_file(username, session_path)
+    else:
+        loader.login(username, password)
+    loader.save_session_to_file(session_path)
