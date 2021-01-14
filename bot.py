@@ -43,36 +43,31 @@ def notifications():
     insta.mark_notifications(notifications_at)
 
 
+def load_posts() -> List[Post]:
+    posts = set()
+    random.shuffle(interests)
+    for item in interests:
+        posts.update(iterlist(
+            loader.get_location_posts(item) if type(item) == int else loader.get_hashtag_posts(item),
+            random.randint(5, 10)
+        ))
+        wait(random.uniform(60, 60 * 2))
+    posts = list(posts)
+    random.shuffle(posts)
+    return posts
+
+
 while True:
     try:
         # Have a pause over night
-        if 7 < datetime.now().hour <= 23:
+        if not 7 < datetime.now().hour <= 23:
+            time.sleep(0.5)
+        else:
             # Check notifications (to set notifications_at)
             if not notifications_at:
                 notifications()
-            # Load posts
-            posts = set()
-            random.shuffle(tags)
-            for tag in tags:
-                tag_posts = iterlist(
-                    loader.get_hashtag_posts(tag),
-                    10
-                )
-                posts.update(tag_posts)
-                wait(random.uniform(60, 60 * 2))
-            random.shuffle(locations)
-            for loc in locations:
-                loc_posts = iterlist(
-                    loader.get_location_posts(loc),
-                    10
-                )
-                posts.update(loc_posts)
-                wait(random.uniform(60, 60 * 2))
-            posts = list(posts)
-            random.shuffle(posts)
-
             # Like posts
-            for post in posts:
+            for post in load_posts():
                 print('Liking ', f'https://instagram.com/p/{post.shortcode}')
                 post = insta.like_post(post)
                 if not post.viewer_has_liked:
@@ -80,8 +75,6 @@ while True:
                 if datetime.now() - notifications_at > timedelta(minutes=20):
                     notifications()
                 wait(random.uniform(60 * 15, 60 * 20))
-        else:
-            time.sleep(0.5)
     except (
             KeyboardInterrupt,
             LoginRequiredException, TwoFactorAuthRequiredException,
