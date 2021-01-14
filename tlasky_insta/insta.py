@@ -12,8 +12,9 @@ PostCommentType = Union[PostComment, PostCommentAnswer]
 
 class TlaskyInsta:
     def __init__(self, loader: Instaloader):
-        assert loader.test_login(), 'Please provide logged in Instaloader.'
+        assert loader.test_login(), 'Please provide logged-in Instaloader.'
         self.loader = loader
+        self.last_notifications_at: Union[None, datetime] = None
 
     @property
     def session(self) -> Session:
@@ -104,6 +105,7 @@ class TlaskyInsta:
                 'include_reel': str(reels).lower()
             }
         ))
+        self.last_notifications_at = datetime.now()
         return [
             Notification.from_dict(notification_cdt)
             for notification_cdt in multikeys(
@@ -116,6 +118,6 @@ class TlaskyInsta:
         self._check_response(self.session.post(
             'https://www.instagram.com/web/activity/mark_checked/',
             data=dict(
-                timestamp=(from_date or datetime.now()).timestamp()
+                timestamp=(from_date or self.last_notifications_at or datetime.now()).timestamp()
             )
         ))

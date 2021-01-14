@@ -23,23 +23,19 @@ if loader.context.username != tlasky:
             insta.like_post(post)
             wait(random.uniform(60, 120))
 
-notifications_at: Union[None, datetime] = None
-
 
 def process_notifications():
     # Process notifications
     print('Checking notifications.')
-    global notifications_at
     for notification in insta.get_notifications():
-        if not notifications_at or notifications_at < notification.at:
+        if insta.last_notifications_at < notification.at:
             # Process comments and comments mentions
             if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):
                 post = notification.get_media(loader.context)
                 for comment in post.get_comments():
                     if comment.text == notification.text:
                         insta.like_comment(comment)
-    notifications_at = datetime.now()
-    insta.mark_notifications(notifications_at)
+    insta.mark_notifications()
 
 
 def load_posts() -> List[Post]:
@@ -67,7 +63,7 @@ while True:
             time.sleep(0.5)
         else:
             # Check notifications (to set notifications_at)
-            if not notifications_at:
+            if not insta.last_notifications_at:
                 process_notifications()
             # Like posts
             for post in load_posts():
@@ -76,7 +72,7 @@ while True:
                     # Confirm that image was really liked
                     print(f'Liking is probably blocked. Please delete "{session_path}" and re-login.')
                 # Process notifications at least every ~ 20+ minutes
-                if datetime.now() - notifications_at > timedelta(minutes=20):
+                if datetime.now() - insta.last_notifications_at > timedelta(minutes=20):
                     process_notifications()
                 # Wait to avoid rate limit or likes block
                 wait(random.uniform(60 * 20, 60 * 30))
