@@ -2,8 +2,8 @@ import os
 import random
 from config import *
 from tlasky_insta import *
-from datetime import datetime
 from traceback import print_exc
+from datetime import datetime, timedelta
 
 loader = Instaloader()
 if os.path.exists(session_path):
@@ -24,23 +24,32 @@ if loader.context.username != tlasky:
         if not post.viewer_has_liked:
             insta.like_post(post)
 
+notifications_at: Union[None, datetime] = None
+
+
+def notifications():
+    # Process notifications
+    print('Checking notifications.')
+    global notifications_at
+    for notification in insta.get_notifications():
+        if not notifications_at or notifications_at < notification.at:
+            # Process comments and comments mentions
+            if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):
+                post = notification.get_media(loader.context)
+                for comment in post.get_comments():
+                    if comment.text == notification.text:
+                        insta.like_comment(comment)
+    notifications_at = datetime.now()
+    insta.mark_notifications(notifications_at)
+
+
 while True:
     try:
         # Have a pause over night
         if 7 < datetime.now().hour <= 23:
-            # Process notifications
-            notifications_at: Union[None, datetime] = None
-            for notification in insta.get_notifications():
-                if not notifications_at or notifications_at < notification.at:
-                    # Process comments and comments mentions
-                    if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):
-                        post = notification.get_media(loader.context)
-                        for comment in post.get_comments():
-                            if comment.text == notification.text:
-                                insta.like_comment(comment)
-            notifications_at = datetime.now()
-            insta.mark_notifications(notifications_at)
-
+            # Check notifications (to set notifications_at)
+            if not notifications_at:
+                notifications()
             # Load posts
             posts = set()
             random.shuffle(tags)
@@ -68,6 +77,8 @@ while True:
                 post = insta.like_post(post)
                 if not post.viewer_has_liked:
                     print(f'Liking is probably blocked. Please delete "{session_path}" and re-login.')
+                if datetime.now() - notifications_at > timedelta(minutes=20):
+                    notifications()
                 wait(random.uniform(60 * 15, 60 * 20))
         else:
             time.sleep(0.5)
