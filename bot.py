@@ -43,8 +43,9 @@ def notifications():
     insta.mark_notifications(notifications_at)
 
 
-def load_posts(interests: List[Union[str, int]]) -> List[Post]:
+def load_posts() -> List[Post]:
     print('Loading posts.')
+    global interests
     posts = set()
     random.shuffle(interests)
     for item in interests:
@@ -68,10 +69,9 @@ while True:
             if not notifications_at:
                 notifications()
             # Like posts
-            for post in load_posts(interests):
+            for post in load_posts():
                 print('Liking ', f'https://instagram.com/p/{post.shortcode}')
-                post = insta.like_post(post)
-                if not post.viewer_has_liked:
+                if not insta.like_post(post).viewer_has_liked:
                     print(f'Liking is probably blocked. Please delete "{session_path}" and re-login.')
                 if datetime.now() - notifications_at > timedelta(minutes=20):
                     notifications()
