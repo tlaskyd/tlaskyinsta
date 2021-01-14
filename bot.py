@@ -43,8 +43,7 @@ def notifications():
     insta.mark_notifications(notifications_at)
 
 
-def load_posts() -> List[Post]:
-    global interests
+def load_posts(interests: List[Union[str, int]]) -> List[Post]:
     posts = set()
     random.shuffle(interests)
     for item in interests:
@@ -68,7 +67,7 @@ while True:
             if not notifications_at:
                 notifications()
             # Like posts
-            for post in load_posts():
+            for post in load_posts(interests):
                 print('Liking ', f'https://instagram.com/p/{post.shortcode}')
                 post = insta.like_post(post)
                 if not post.viewer_has_liked:
