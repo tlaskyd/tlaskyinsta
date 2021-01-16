@@ -66,7 +66,7 @@ while True:
             if not insta.last_notifications_at:
                 process_notifications()
             # Like posts
-            for post in load_posts():
+            for post in random.choices(load_posts(), k=random.randint(5, 15)):
                 print('Liking ', f'https://instagram.com/p/{post.shortcode}')
                 if not insta.like_post(post).viewer_has_liked:
                     # Confirm that image was really liked
@@ -76,6 +76,7 @@ while True:
                     process_notifications()
                 # Wait to avoid rate limit or likes block
                 wait(random.uniform(60 * 20, 60 * 30))
+            wait(random.uniform(60 * 15, 60 * 30))
     except (
             KeyboardInterrupt,
             LoginRequiredException, TwoFactorAuthRequiredException,
