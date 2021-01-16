@@ -5,7 +5,7 @@ with open('./README.md', 'r') as fh:
 
 setuptools.setup(
     name='tlasky_insta',
-    version='1.0.0',
+    version='1.0.1',
     author='David Tláskal',
     author_email='da.tlaskal@gmail.com',
     description='Python Instagram bot api.',
