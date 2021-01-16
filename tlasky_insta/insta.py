@@ -18,6 +18,7 @@ class TlaskyInsta:
 
     @property
     def session(self) -> Session:
+        # Because loader.context._session is private attribute.
         return getattr(self.loader.context, '_session')
 
     @staticmethod
@@ -107,8 +108,8 @@ class TlaskyInsta:
         ))
         self.last_notifications_at = datetime.now()
         return [
-            Notification.from_dict(notification_cdt)
-            for notification_cdt in multikeys(
+            Notification.from_dict(notification_dict)
+            for notification_dict in multikeys(
                 response.json(),
                 'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
             )
