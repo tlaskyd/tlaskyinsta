@@ -107,7 +107,7 @@ if __name__ == '__main__':
             244516490,  # CZ
             261698127,  # SK
             108100019211318,  # DE
-            'nature',
+            'nature',  # Hashtags
             'czechnature',
             'czechgirl',
             'slovaknature',
