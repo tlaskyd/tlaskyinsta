@@ -22,14 +22,17 @@ class TlaskyInsta:
         return getattr(self.loader.context, '_session')
 
     @staticmethod
-    def _check_response(response: Response) -> Response:
-        print('\t*', response.request.method, response.url, response.status_code, end=' ')
+    def log(*args, **kwargs):
+        print(*args, **kwargs)
+
+    def _check_response(self, response: Response) -> Response:
+        self.log(' *', response.request.method, response.url, response.status_code, end=' ')
         try:
-            print(response.json()['status'])
+            self.log(response.json()['status'])
         except KeyError:
-            print()
+            self.log()
         except JSONDecodeError:
-            print('\n' + response.text)
+            self.log('\n' + response.text)
         return response
 
     def like_post(self, post: Post) -> Post:

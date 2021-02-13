@@ -1,89 +1,143 @@
+import os
+import time
 import random
-from config import *
-from tlasky_insta import *
-from traceback import print_exc
-from datetime import datetime, timedelta
-
-loader = Instaloader()
-safe_login(
-    loader,
-    username, password,
-    session_path
-)
-insta = TlaskyInsta(loader)
-
-# Follow tlasky and like his posts.
-tlasky = 'david_tlaskal'
-if loader.context.username != tlasky:
-    profile = Profile.from_username(loader.context, tlasky)
-    if not profile.followed_by_viewer:
-        insta.follow_profile(profile)
-    for post in profile.get_posts():
-        if not post.viewer_has_liked:
-            insta.like_post(post)
-            wait(random.uniform(60, 120))
+import pickle
+import shutil
+import traceback
+from typing import *
+from instaloader import Instaloader, Post
+from tlasky_insta.utils import safe_login, post_url
+from tlasky_insta import TlaskyInsta, NotificationType
 
 
-def process_notifications():
-    # Process notifications
-    print('Checking notifications.')
-    for notification in insta.get_notifications():
-        if insta.last_notifications_at < notification.at:
-            # Process comments and comments mentions
-            if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):
-                post = notification.get_media(loader.context)
-                for comment in post.get_comments():
-                    if comment.text == notification.text:
-                        insta.like_comment(comment)
-    insta.mark_notifications()
+class ExitException(Exception):
+    pass
 
 
-def load_posts() -> List[Post]:
-    print('Loading posts.')
-    global interests
-    # Set because we don't want duplicated posts
-    posts = set()
-    random.shuffle(interests)
-    for item in interests:
-        posts.update(iterlist(
-            loader.get_location_posts(item) if type(item) == int else loader.get_hashtag_posts(item),
-            random.randint(5, 10)
-        ))
-        wait(random.uniform(60, 60 * 2))
-    # List because we can shuffle it
-    posts = list(posts)
-    random.shuffle(posts)
-    return posts
-
-
-while True:
+def run_bots(*bots: 'TlaskyBot'):
     try:
-        # Have a pause over night
-        if not 7 < datetime.now().hour <= 23:
-            time.sleep(0.5)
-        else:
-            # Check notifications (to set notifications_at)
-            if not insta.last_notifications_at:
-                process_notifications()
-            # Like posts
-            for post in random.choices(load_posts(), k=random.randint(5, 15)):
-                print('Liking ', f'https://instagram.com/p/{post.shortcode}')
-                if not insta.like_post(post).viewer_has_liked:
-                    # Confirm that image was really liked
-                    print(f'Liking is probably blocked. Please delete "{session_path}" and re-login.')
-                # Process notifications at least every ~ 20+ minutes
-                if datetime.now() - insta.last_notifications_at > timedelta(minutes=20):
-                    process_notifications()
-                # Wait to avoid rate limit or likes block
-                wait(random.uniform(60 * 20, 60 * 30))
-            wait(random.uniform(60 * 15, 60 * 30))
-    except (
-            KeyboardInterrupt,
-            LoginRequiredException, TwoFactorAuthRequiredException,
-            ConnectionException, BadCredentialsException, InvalidArgumentException
-    ):
-        break
+        for bot in bots:
+            bot.on_open()
+        while True:
+            for bot in bots:
+                bot.loop()
+            time.sleep(0.01)
+    except (KeyboardInterrupt, ExitException):
+        pass
     except Exception:
-        print_exc()
-        if debug:
-            break
+        traceback.print_exc()
+    finally:
+        for bot in bots:
+            bot.on_close()
+
+
+class TlaskyBot:
+    def __init__(self, username: str, password: str, interests: List[Union[str, int]]):
+        self.session_file = f'./{username}.pickle'
+        self.posts_file = f'./{username}_posts.pickle'
+
+        self.loader = Instaloader()
+        self.context = self.loader.context
+        safe_login(self.loader, username, password, self.session_file)
+        self.insta = TlaskyInsta(self.loader)
+        self.insta.log = self.log
+
+        self.interests = interests
+
+        self.min_posts = 10
+        self.posts: Set[Post] = set()
+        self.last_like_at = 0
+
+    def log(self, *args, **kwargs):
+        print(self.context.username, '-', *args, **kwargs)
+
+    def __add_posts(self, iterable: Iterable[Post], n: int = 5):
+        added_posts = 0
+        for post in iterable:
+            if not post.viewer_has_liked and post not in self.posts:
+                self.log(
+                    'Adding', post_url(post),
+                    'by', post.owner_username,
+                    f'({len(self.posts)} | {self.min_posts})'
+                )
+                self.posts.add(post)
+                added_posts += 1
+            if added_posts >= n:
+                break
+
+    def _notifications(self):
+        if not self.insta.last_notifications_at or time.time() - self.insta.last_notifications_at.timestamp() > 60 * 2:
+            for notification in self.insta.get_notifications():
+                if self.insta.last_notifications_at < notification.at:
+                    # Process comments and comments mentions
+                    self.log(
+                        'Notification', NotificationType.name,
+                        'by', notification.get_user(self.context).username,
+                        post_url(notification.get_media(self.context))
+                    )
+                    # Like comments and mentions
+                    if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):
+                        post = notification.get_media(self.context)
+                        for comment in post.get_comments():
+                            if comment.text == notification.text:
+                                self.insta.like_comment(comment)
+                    # Add 5 posts from notification author to posts to like.
+                    user = notification.get_user(self.context)
+                    if not user.followed_by_viewer:
+                        self.__add_posts(user.get_posts())
+            self.insta.mark_notifications()
+
+    def _load_posts(self):
+        while len(self.posts) < self.min_posts:  # Have prepared at least 20 posts
+            for item in self.interests:
+                self.__add_posts(
+                    self.loader.get_location_posts(item)
+                    if type(item) == int else
+                    self.loader.get_hashtag_posts(item)
+                )
+
+    def _like_post(self):
+        if not self.last_like_at or time.time() - self.last_like_at > 60 * 15:  # Like random post every 15 minutes
+            post = random.choice(list(self.posts))
+            self.posts.remove(post)
+            self.log(
+                'Liking', post_url(post),
+                'by', post.owner_username
+            )
+            if not self.insta.like_post(post).viewer_has_liked:
+                self.log('Liking is probably banned, removing session file')
+                shutil.rmtree(self.session_file)
+                raise ExitException()
+            self.last_like_at = time.time()
+
+    def loop(self):
+        self._notifications()
+        self._load_posts()
+        self._like_post()
+
+    def on_open(self):
+        if os.path.isfile(self.posts_file):  # Load saved posts
+            self.log('Loading saved posts')
+            with open(self.posts_file, 'rb') as file:
+                self.posts = pickle.load(file)
+
+    def on_close(self):
+        with open(self.posts_file, 'wb') as file:  # Save loaded posts
+            self.log('Saving loaded posts')
+            pickle.dump(self.posts, file)
+
+
+if __name__ == '__main__':
+    from config import username, password
+
+    bot = TlaskyBot(
+        username, password,
+        [
+            244516490,  # CZ
+            261698127,  # SK
+            108100019211318,  # DE
+            *'nature czechnature czechgirl slovaknature slovakgirl'.split()
+        ]
+    )
+    # This way you can run bots for multiple users
+    run_bots(bot)

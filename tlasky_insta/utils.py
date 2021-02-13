@@ -3,7 +3,7 @@ import time
 from tqdm import tqdm
 from datetime import timedelta
 from humanize import precisedelta
-from instaloader import Instaloader
+from instaloader import Instaloader, Post
 from typing import Dict, Any, Iterable, List
 
 
@@ -38,3 +38,7 @@ def safe_login(loader: Instaloader, username: str, password: str, session_path: 
     else:
         loader.login(username, password)
     loader.save_session_to_file(session_path)
+
+
+def post_url(post: Post) -> str:
+    return f'https://instagram.com/p/{post.shortcode}'
