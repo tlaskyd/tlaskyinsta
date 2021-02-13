@@ -107,7 +107,11 @@ if __name__ == '__main__':
             244516490,  # CZ
             261698127,  # SK
             108100019211318,  # DE
-            *'nature czechnature czechgirl slovaknature slovakgirl'.split()
+            'nature',
+            'czechnature',
+            'czechgirl',
+            'slovaknature',
+            'slovakgirl'
         ]
     )
     # This way you can run bots for multiple users
