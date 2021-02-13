@@ -100,8 +100,8 @@ class TlaskyBot(AbstractBot):
                 self.posts = pickle.load(file)
 
     def on_close(self):
+        self.log('Saving loaded posts')
         with open(self.posts_file, 'wb') as file:  # Save loaded posts
-            self.log('Saving loaded posts')
             pickle.dump(self.posts, file)
 
 
