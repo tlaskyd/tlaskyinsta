@@ -99,20 +99,21 @@ class TlaskyBot(AbstractBot):
 
 
 if __name__ == '__main__':
-    from config import username, password
+    from config import usernames_passwords
 
-    bot = TlaskyBot(
-        username, password,
-        [
-            244516490,  # CZ
-            261698127,  # SK
-            108100019211318,  # DE
-            'nature',  # Hashtags
-            'czechnature',
-            'czechgirl',
-            'slovaknature',
-            'slovakgirl'
-        ]
-    )
-    # This way you can run bots for multiple users
-    run_bots(bot)
+    interests = [
+        244516490,  # CZ
+        261698127,  # SK
+        108100019211318,  # DE
+        'nature',  # Hashtags
+        'czechnature',
+        'czechgirl',
+        'slovaknature',
+        'slovakgirl'
+    ]
+
+    bots = {
+        username: TlaskyBot(username, password, interests)
+        for username, password in usernames_passwords
+    }
+    run_bots(*bots.values())
