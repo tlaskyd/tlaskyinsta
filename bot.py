@@ -3,9 +3,9 @@ import time
 import random
 import pickle
 import shutil
-import traceback
 from typing import *
-from instaloader import Instaloader, Post
+from itertools import cycle
+from instaloader import Instaloader, Post, InstaloaderException
 from tlasky_insta.utils import safe_login, post_url
 from tlasky_insta import TlaskyInsta, NotificationType
 
@@ -20,12 +20,13 @@ def run_bots(*bots: 'TlaskyBot'):
             bot.on_open()
         while True:
             for bot in bots:
-                bot.loop()
+                try:
+                    bot.loop()
+                except InstaloaderException:
+                    pass
             time.sleep(0.01)
     except (KeyboardInterrupt, ExitException):
         pass
-    except Exception:
-        traceback.print_exc()
     finally:
         for bot in bots:
             bot.on_close()
@@ -40,9 +41,13 @@ class TlaskyBot:
         self.context = self.loader.context
         safe_login(self.loader, username, password, self.session_file)
         self.insta = TlaskyInsta(self.loader)
-        self.insta.log = self.log
 
-        self.interests = interests
+        self.interests_iterators = cycle([
+            self.loader.get_location_posts(interest)
+            if type(interest) == int else
+            self.loader.get_hashtag_posts(interest)
+            for interest in interests
+        ])
 
         self.min_posts = 10
         self.posts: Set[Post] = set()
@@ -51,7 +56,7 @@ class TlaskyBot:
     def log(self, *args, **kwargs):
         print(self.context.username, '-', *args, **kwargs)
 
-    def __add_posts(self, iterable: Iterable[Post], n: int = 5):
+    def __add_posts(self, iterable: Iterable[Post], n: int):
         added_posts = 0
         for post in iterable:
             if not post.viewer_has_liked and post not in self.posts:
@@ -84,17 +89,15 @@ class TlaskyBot:
                     # Add 5 posts from notification author to posts to like.
                     user = notification.get_user(self.context)
                     if not user.followed_by_viewer:
-                        self.__add_posts(user.get_posts())
+                        self.__add_posts(user.get_posts(), 5)
             self.insta.mark_notifications()
 
     def _load_posts(self):
-        while len(self.posts) < self.min_posts:  # Have prepared at least 20 posts
-            for item in self.interests:
-                self.__add_posts(
-                    self.loader.get_location_posts(item)
-                    if type(item) == int else
-                    self.loader.get_hashtag_posts(item)
-                )
+        while len(self.posts) < self.min_posts:
+            self.__add_posts(
+                next(self.interests_iterators),
+                5
+            )
 
     def _like_post(self):
         if not self.last_like_at or time.time() - self.last_like_at > 60 * 15:  # Like random post every 15 minutes
