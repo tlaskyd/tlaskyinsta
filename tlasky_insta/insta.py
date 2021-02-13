@@ -11,19 +11,20 @@ PostCommentType = Union[PostComment, PostCommentAnswer]
 
 
 class TlaskyInsta:
-    def __init__(self, loader: Instaloader):
+    def __init__(self, loader: Instaloader, quiet=False):
         assert loader.test_login(), 'Please provide logged-in Instaloader.'
         self.loader = loader
         self.last_notifications_at: Union[None, datetime] = None
+        self.quiet = quiet
 
     @property
     def session(self) -> Session:
         # Because loader.context._session is private attribute.
         return getattr(self.loader.context, '_session')
 
-    @staticmethod
-    def log(*args, **kwargs):
-        print(*args, **kwargs)
+    def log(self, *args, **kwargs):
+        if not self.quiet:
+            print(*args, **kwargs)
 
     def _check_response(self, response: Response) -> Response:
         self.log(' *', response.request.method, response.url, response.status_code, end=' ')

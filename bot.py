@@ -16,6 +16,8 @@ class TlaskyBot(AbstractBot):
     def __init__(self, username: str, password: str, interests: List[Union[str, int]]):
         super().__init__(username, password)
 
+        self.insta.quiet = True
+
         self.interests_iterators = cycle([
             self.loader.get_location_posts(interest)
             if type(interest) == int else
@@ -23,9 +25,13 @@ class TlaskyBot(AbstractBot):
             for interest in interests
         ])
 
-        self.min_posts = 10
         self.posts: Set[Post] = set()
         self.last_like_at = 0
+
+        # Settings
+        self.min_posts = 10
+        self.notifications_delay = 60 * 2
+        self.post_delay = 60 * 15
 
     def __add_posts(self, iterable: Iterable[Post], n: int):
         added_posts = 0
@@ -42,7 +48,8 @@ class TlaskyBot(AbstractBot):
                 break
 
     def _notifications(self):
-        if not self.insta.last_notifications_at or time.time() - self.insta.last_notifications_at.timestamp() > 60 * 2:
+        if not self.insta.last_notifications_at or \
+                time.time() - self.insta.last_notifications_at.timestamp() > self.notifications_delay:
             for notification in self.insta.get_notifications():
                 if self.insta.last_notifications_at < notification.at:
                     # Process comments and comments mentions
@@ -68,7 +75,8 @@ class TlaskyBot(AbstractBot):
             self.__add_posts(next(self.interests_iterators), 5)
 
     def _like_post(self):
-        if not self.last_like_at or time.time() - self.last_like_at > 60 * 15:  # Like random post every 15 minutes
+        if not self.last_like_at or \
+                time.time() - self.last_like_at > self.post_delay:  # Like random post every 15 minutes
             post = random.choice(list(self.posts))
             self.posts.remove(post)
             self.log(
