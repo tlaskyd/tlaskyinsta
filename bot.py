@@ -93,7 +93,7 @@ class TlaskyBot:
             self.insta.mark_notifications()
 
     def _load_posts(self):
-        while len(self.posts) < self.min_posts:
+        while len(self.posts) <= self.min_posts:
             self.__add_posts(
                 next(self.interests_iterators),
                 5
