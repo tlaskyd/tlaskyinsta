@@ -3,7 +3,7 @@ import time
 from instaloader import Instaloader, InstaloaderException
 
 from .insta import TlaskyInsta
-from .utils import safe_login
+from .utils import safe_login, wait
 
 
 class BotExitException(Exception):
@@ -64,7 +64,7 @@ def run_bots(*bots: AbstractBot):
                     pass
             took = time.time() - start
             if took < 1:
-                time.sleep(1 - took)
+                wait(1 - took)
     except (KeyboardInterrupt, BotExitException):
         pass
     finally:
