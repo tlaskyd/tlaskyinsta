@@ -72,7 +72,7 @@ class TlaskyBot(AbstractBot):
 
     def _load_posts(self):
         while len(self.posts) <= self.min_posts:
-            self.__add_posts(next(self.interests_iterators), 5)
+            self.__add_posts(next(self.interests_iterators), 1)
 
     def _like_post(self):
         if not self.last_like_at or \
