@@ -5,42 +5,16 @@ import pickle
 import shutil
 from typing import *
 from itertools import cycle
-from instaloader import Instaloader, Post, InstaloaderException
-from tlasky_insta.utils import safe_login, post_url
-from tlasky_insta import TlaskyInsta, NotificationType
+from instaloader import Post
+
+from tlasky_insta import NotificationType
+from tlasky_insta.utils import post_url
+from tlasky_insta.bot import AbstractBot, run_bots, BotExitException
 
 
-class ExitException(Exception):
-    pass
-
-
-def run_bots(*bots: 'TlaskyBot'):
-    try:
-        for bot in bots:
-            bot.on_open()
-        while True:
-            for bot in bots:
-                try:
-                    bot.loop()
-                except InstaloaderException:
-                    pass
-            time.sleep(0.01)
-    except (KeyboardInterrupt, ExitException):
-        pass
-    finally:
-        for bot in bots:
-            bot.on_close()
-
-
-class TlaskyBot:
+class TlaskyBot(AbstractBot):
     def __init__(self, username: str, password: str, interests: List[Union[str, int]]):
-        self.session_file = f'./{username}.pickle'
-        self.posts_file = f'./{username}_posts.pickle'
-
-        self.loader = Instaloader()
-        self.context = self.loader.context
-        safe_login(self.loader, username, password, self.session_file)
-        self.insta = TlaskyInsta(self.loader)
+        super().__init__(username, password)
 
         self.interests_iterators = cycle([
             self.loader.get_location_posts(interest)
@@ -52,9 +26,6 @@ class TlaskyBot:
         self.min_posts = 10
         self.posts: Set[Post] = set()
         self.last_like_at = 0
-
-    def log(self, *args, **kwargs):
-        print(self.context.username, '-', *args, **kwargs)
 
     def __add_posts(self, iterable: Iterable[Post], n: int):
         added_posts = 0
@@ -94,10 +65,7 @@ class TlaskyBot:
 
     def _load_posts(self):
         while len(self.posts) <= self.min_posts:
-            self.__add_posts(
-                next(self.interests_iterators),
-                5
-            )
+            self.__add_posts(next(self.interests_iterators), 5)
 
     def _like_post(self):
         if not self.last_like_at or time.time() - self.last_like_at > 60 * 15:  # Like random post every 15 minutes
@@ -110,7 +78,7 @@ class TlaskyBot:
             if not self.insta.like_post(post).viewer_has_liked:
                 self.log('Liking is probably banned, removing session file')
                 shutil.rmtree(self.session_file)
-                raise ExitException()
+                raise BotExitException()
             self.last_like_at = time.time()
 
     def loop(self):
