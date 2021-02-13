@@ -7,8 +7,8 @@ from typing import *
 from itertools import cycle
 from instaloader import Post
 
-from tlasky_insta import NotificationType
 from tlasky_insta.utils import post_url
+from tlasky_insta import NotificationType
 from tlasky_insta.bot import AbstractBot, run_bots, BotExitException
 
 

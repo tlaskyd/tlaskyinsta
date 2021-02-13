@@ -64,7 +64,7 @@ def run_bots(*bots: AbstractBot):
                     pass
             took = time.time() - start
             if took < 1:
-                wait(1 - took)
+                time.sleep(1 - took)
     except (KeyboardInterrupt, BotExitException):
         pass
     finally:
