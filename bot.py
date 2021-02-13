@@ -33,9 +33,10 @@ class TlaskyBot(AbstractBot):
         self.notifications_delay = 60 * 2
         self.post_delay = 60 * 15
 
-    def __add_posts(self, iterable: Iterable[Post], n: int):
+    def __add_posts(self, iterable: Iterator[Post], n: int):
         added_posts = 0
-        for post in iterable:
+        while added_posts < n:
+            post = next(iterable)
             if not post.viewer_has_liked and post not in self.posts:
                 self.log(
                     'Adding', post_url(post),
@@ -44,8 +45,6 @@ class TlaskyBot(AbstractBot):
                 )
                 self.posts.add(post)
                 added_posts += 1
-            if added_posts >= n:
-                break
 
     def _notifications(self):
         if not self.insta.last_notifications_at or \
