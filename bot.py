@@ -59,7 +59,7 @@ class TlaskyBot(AbstractBot):
                     for comment in notification.get_media(self.context).get_comments():
                         if comment.text == notification.text:
                             self.insta.like_comment(comment)
-                # Add 5 posts from notification author to posts to like.
+                # Add 5 posts from notification author to posts to like
                 if not author.followed_by_viewer:
                     self.__add_posts(author.get_posts(), 5)
                 # "Watch" authors story
