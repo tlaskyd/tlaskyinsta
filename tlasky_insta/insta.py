@@ -91,7 +91,6 @@ class TlaskyInsta:
         ))
 
     def seen_story(self, story: Story, item: StoryItem, seen_at: datetime = None):
-        # TODO: Fix
         self._check_response(self.session.post(
             f'https://www.instagram.com/stories/reel/seen',
             data=dict(
