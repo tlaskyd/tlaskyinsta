@@ -74,7 +74,6 @@ class TlaskyBot(AbstractBot):
 
     def _like_post(self):
         post = random.choice(list(self.posts))
-        self.posts.remove(post)
         self.log(
             'Liking', post_url(post),
             'by', post.owner_username
@@ -83,6 +82,7 @@ class TlaskyBot(AbstractBot):
             self.log('Liking is probably banned, removing session file')
             os.remove(self.session_file)
             raise BotExitException()
+        self.posts.remove(post)
         self.last_like_at = time.time()
 
     def loop(self):
