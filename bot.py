@@ -26,7 +26,6 @@ class TlaskyBot(AbstractBot):
         ])
 
         self.posts: Set[Post] = set()
-        self.last_like_at = 0
         self.scheduler = Scheduler()
 
         # Settings
@@ -51,7 +50,6 @@ class TlaskyBot(AbstractBot):
         for notification in self.insta.get_notifications():
             if self.insta.last_notifications_at < notification.at:
                 author = notification.get_user(self.context)
-                # Process comments and comments mentions
                 self.log(
                     'Notification', NotificationType.name,
                     'by', author.username,
@@ -59,8 +57,7 @@ class TlaskyBot(AbstractBot):
                 )
                 # Like comments and mentions
                 if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):
-                    post = notification.get_media(self.context)
-                    for comment in post.get_comments():
+                    for comment in notification.get_media(self.context).get_comments():
                         if comment.text == notification.text:
                             self.insta.like_comment(comment)
                 # Add 5 posts from notification author to posts to like.
@@ -88,7 +85,6 @@ class TlaskyBot(AbstractBot):
             os.remove(self.session_file)
             raise BotExitException()
         self.posts.remove(post)
-        self.last_like_at = time.time()
 
     def loop(self):
         self._load_posts()
