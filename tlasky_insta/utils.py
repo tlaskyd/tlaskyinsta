@@ -1,8 +1,4 @@
 import os
-import time
-from tqdm import tqdm
-from datetime import timedelta
-from humanize import precisedelta
 from instaloader import Instaloader, Post
 from typing import Dict, Any, Iterable, List
 
@@ -22,14 +18,6 @@ def iterlist(iter: Iterable, n: int = 0) -> List[Any]:
         next(iter)
         for _ in range(n)
     ]
-
-
-def wait(t: float):
-    i, f = divmod(t, 1)
-    delay = 1 + f / i
-    description = f'Waiting for {precisedelta(timedelta(seconds=t))}'
-    for _ in tqdm(range(int(i)), description):
-        time.sleep(delay)
 
 
 def safe_login(loader: Instaloader, username: str, password: str, session_path: str = './session.pickle'):
