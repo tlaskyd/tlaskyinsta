@@ -1,6 +1,6 @@
-from instaloader import Instaloader, Profile
 from tlasky_insta import TlaskyInsta
 from tlasky_insta.utils import safe_login
+from instaloader import Instaloader, Profile
 
 from config import usernames_passwords
 
