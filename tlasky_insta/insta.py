@@ -27,6 +27,7 @@ class TlaskyInsta:
             print(*args, **kwargs)
 
     def _check_response(self, response: Response) -> Response:
+        # self.log(' *', response.request.url, response.request.body) # Just for debugging
         self.log(' *', response.request.method, response.url, response.status_code, end=' ')
         try:
             self.log(response.json()['status'])
@@ -96,9 +97,9 @@ class TlaskyInsta:
             data=dict(
                 reelMediaId=item.mediaid,
                 reelMediaOwnerId=item.owner_id,
-                reelId=story.unique_id,
-                reelMediaTakenAt=item.date.timestamp(),
-                viewSeenAt=(seen_at or datetime.now()).timestamp(),
+                reelId=story.owner_id,
+                reelMediaTakenAt=int(item.date.timestamp()),
+                viewSeenAt=int((seen_at or datetime.now()).timestamp()),
             )
         ))
 
@@ -114,9 +115,9 @@ class TlaskyInsta:
             [
                 Notification.from_dict(notification_dict)
                 for notification_dict in multikeys(
-                    response.json(),
-                    'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
-                )
+                response.json(),
+                'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
+            )
             ],
             key=lambda n: n.at,
             reverse=True

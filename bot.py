@@ -50,10 +50,11 @@ class TlaskyBot(AbstractBot):
     def _notifications(self):
         for notification in self.insta.get_notifications():
             if self.insta.last_notifications_at < notification.at:
+                author = notification.get_user(self.context)
                 # Process comments and comments mentions
                 self.log(
                     'Notification', NotificationType.name,
-                    'by', notification.get_user(self.context).username,
+                    'by', author.username,
                     post_url(notification.get_media(self.context))
                 )
                 # Like comments and mentions
@@ -63,9 +64,13 @@ class TlaskyBot(AbstractBot):
                         if comment.text == notification.text:
                             self.insta.like_comment(comment)
                 # Add 5 posts from notification author to posts to like.
-                user = notification.get_user(self.context)
-                if not user.followed_by_viewer:
-                    self.__add_posts(user.get_posts(), 5)
+                if not author.followed_by_viewer:
+                    self.__add_posts(author.get_posts(), 5)
+                # "Watch" authors story
+                if author.has_viewable_story:
+                    stories = list(self.loader.get_stories([author.userid]))[0]
+                    for item in stories.get_items():
+                        self.insta.seen_story(stories, item)
         self.insta.mark_notifications()
 
     def _load_posts(self):
