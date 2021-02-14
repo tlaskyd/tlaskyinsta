@@ -2,8 +2,8 @@ import os
 import time
 from instaloader import Instaloader, InstaloaderException
 
+from .utils import safe_login
 from .insta import TlaskyInsta
-from .utils import safe_login, wait
 
 
 class BotExitException(Exception):
