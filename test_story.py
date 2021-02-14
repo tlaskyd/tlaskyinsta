@@ -14,7 +14,7 @@ safe_login(
 )
 insta = TlaskyInsta(loader)
 
-user = Profile.from_username(context, 'valinkanovakova')
+user = Profile.from_username(context, 'david_tlaskal')
 stories = list(loader.get_stories([user.userid]))[0]
 for item in stories.get_items():
     insta.seen_story(stories, item)
