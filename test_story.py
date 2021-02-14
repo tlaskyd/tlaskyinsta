@@ -1,4 +1,3 @@
-from pprint import pprint
 from instaloader import Instaloader, Profile
 from tlasky_insta import TlaskyInsta
 from tlasky_insta.utils import safe_login
