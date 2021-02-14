@@ -110,14 +110,19 @@ class TlaskyInsta:
                 'include_reel': str(reels).lower()
             }
         ))
-        self.last_notifications_at = datetime.now()
-        return [
-            Notification.from_dict(notification_dict)
-            for notification_dict in multikeys(
-                response.json(),
-                'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
-            )
-        ]
+        notifications = sorted(
+            [
+                Notification.from_dict(notification_dict)
+                for notification_dict in multikeys(
+                    response.json(),
+                    'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
+                )
+            ],
+            key=lambda n: n.at,
+            reverse=True
+        )
+        self.last_notifications_at = notifications[0].at
+        return notifications
 
     def mark_notifications(self, from_date: datetime = None):
         self._check_response(self.session.post(
