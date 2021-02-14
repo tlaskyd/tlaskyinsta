@@ -89,13 +89,13 @@ class TlaskyBot(AbstractBot):
         self._load_posts()
         self.scheduler.run_pending()
 
-    def on_open(self):
+    def on_start(self):
         if os.path.isfile(self.posts_file):  # Load saved posts
             self.log('Loading saved posts')
             with open(self.posts_file, 'rb') as file:
                 self.posts = pickle.load(file)
 
-    def on_close(self):
+    def on_exit(self):
         self.log('Saving loaded posts')
         with open(self.posts_file, 'wb') as file:  # Save loaded posts
             pickle.dump(self.posts, file)

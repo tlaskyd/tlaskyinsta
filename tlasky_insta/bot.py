@@ -35,13 +35,13 @@ class AbstractBot:
         """
         pass
 
-    def on_open(self):
+    def on_start(self):
         """
         Here you can load your stuff.
         """
         pass
 
-    def on_close(self):
+    def on_exit(self):
         """
         Here you can save your stuff.
         """
@@ -54,7 +54,7 @@ def run_bots(*bots: AbstractBot):
     """
     try:
         for bot in bots:
-            bot.on_open()
+            bot.on_start()
         while True:  # Loop all bots max once per seconds (Don't waist all cpu just for looping.)
             start = time.time()
             for bot in bots:
@@ -69,4 +69,4 @@ def run_bots(*bots: AbstractBot):
         pass
     finally:
         for bot in bots:
-            bot.on_close()
+            bot.on_exit()
