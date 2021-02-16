@@ -23,7 +23,7 @@ class AbstractBot:
         self.context = self.loader.context
         safe_login(self.loader, username, password, self.session_file)
         self.insta = TlaskyInsta(self.loader)
-        self.logger = self.insta.logger.getChild('bot')
+        self.logger = self.insta.logger.getChild(self.context.username)
         self.scheduler = Scheduler()
 
     def loop(self):

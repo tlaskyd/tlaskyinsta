@@ -10,7 +10,11 @@ from .notification import Notification
 
 PostCommentType = Union[PostComment, PostCommentAnswer]
 
-logging.basicConfig()
+logging.basicConfig(
+    format='%(asctime)s %(name)s %(levelname)-8s %(message)s',
+    datefmt='%d-%m-%Y %H:%M:%S'
+)
+
 logging.root.setLevel(logging.INFO)
 
 
@@ -19,7 +23,7 @@ class TlaskyInsta:
         assert loader.test_login(), 'Please provide logged-in Instaloader.'
         self.loader = loader
         self.context = self.loader.context
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__.lower())
         self.last_notifications_at: Union[None, datetime] = None
 
     @property
@@ -117,9 +121,9 @@ class TlaskyInsta:
             [
                 Notification.from_dict(notification_dict)
                 for notification_dict in multikeys(
-                    response.json(),
-                    'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
-                )
+                response.json(),
+                'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
+            )
             ],
             key=lambda n: n.at,
             reverse=True
