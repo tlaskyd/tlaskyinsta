@@ -1,14 +1,18 @@
 import os
 import random
 import pickle
+import logging
 from typing import *
 from itertools import cycle
 from instaloader import Post
-from schedule import Scheduler
 
 from tlasky_insta.utils import post_url
 from tlasky_insta import NotificationType
 from tlasky_insta.bot import AbstractBot, run_bots, BotExitException
+
+"""
+This is a simple bot example. It is used to farm followers. 
+"""
 
 
 class TlaskyBot(AbstractBot):
@@ -25,9 +29,9 @@ class TlaskyBot(AbstractBot):
         ])
 
         self.posts: Set[Post] = set()
-        self.scheduler = Scheduler()
 
         # Settings
+        self.insta.logger.setLevel(logging.INFO)
         self.min_posts = 10
         self.scheduler.every(2).minutes.do(self._notifications)
         self.scheduler.every(15).to(20).minutes.do(self._like_post)
@@ -87,7 +91,7 @@ class TlaskyBot(AbstractBot):
 
     def loop(self):
         self._load_posts()
-        self.scheduler.run_pending()
+        super().loop()
 
     def on_start(self):
         if os.path.isfile(self.posts_file):  # Load saved posts
@@ -102,18 +106,7 @@ class TlaskyBot(AbstractBot):
 
 
 if __name__ == '__main__':
-    from config import usernames_passwords
-
-    interests = [
-        244516490,  # CZ
-        261698127,  # SK
-        108100019211318,  # DE
-        'nature',  # Hashtags
-        'czechnature',
-        'czechgirl',
-        'slovaknature',
-        'slovakgirl'
-    ]
+    from config import usernames_passwords, interests
 
     bots = {  # Create dict for future management
         username: TlaskyBot(username, password, interests)

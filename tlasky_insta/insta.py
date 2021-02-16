@@ -1,3 +1,4 @@
+import logging
 from typing import *
 from instaloader import *
 from datetime import datetime
@@ -9,45 +10,55 @@ from .notification import Notification
 
 PostCommentType = Union[PostComment, PostCommentAnswer]
 
+logging.basicConfig()
+logging.root.setLevel(logging.INFO)
+
 
 class TlaskyInsta:
-    def __init__(self, loader: Instaloader, quiet=False):
+    def __init__(self, loader: Instaloader):
         assert loader.test_login(), 'Please provide logged-in Instaloader.'
         self.loader = loader
+        self.context = self.loader.context
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.last_notifications_at: Union[None, datetime] = None
-        self.quiet = quiet
 
     @property
     def session(self) -> Session:
-        # Because loader.context._session is private attribute.
-        return getattr(self.loader.context, '_session')
+        # Because context._session is private attribute.
+        return getattr(self.context, '_session')
 
-    def log(self, *args, **kwargs):
-        if not self.quiet:
-            print(*args, **kwargs)
+    def _log(self, *args):
+        self.logger.debug(' '.join([
+            str(arg)
+            for arg in args
+        ]))
 
     def _check_response(self, response: Response) -> Response:
-        # self.log(' *', response.request.url, response.request.body) # Just for debugging
-        self.log(' *', response.request.method, response.url, response.status_code, end=' ')
         try:
-            self.log(response.json()['status'])
+            status = response.json()['status']
         except KeyError:
-            self.log()
+            status = str()
         except JSONDecodeError:
-            self.log('\n' + response.text)
+            status = '\n' + response.text
+        self._log(
+            response.request.method,
+            response.url,
+            response.status_code,
+            status
+        )
         return response
 
     def like_post(self, post: Post) -> Post:
         self._check_response(self.session.post(
             f'https://www.instagram.com/web/likes/{post.mediaid}/like/'
         ))
-        return Post.from_mediaid(self.loader.context, post.mediaid)
+        return Post.from_mediaid(self.context, post.mediaid)
 
     def unlike_post(self, post: Post) -> Post:
         self._check_response(self.session.post(
             f'https://www.instagram.com/web/likes/{post.mediaid}/unlike/'
         ))
-        return Post.from_mediaid(self.loader.context, post.mediaid)
+        return Post.from_mediaid(self.context, post.mediaid)
 
     def comment_post(self, post: Post, text: str, reply_to: PostCommentType = None) -> PostCommentType:
         response = self._check_response(self.session.post(
@@ -61,7 +72,7 @@ class TlaskyInsta:
             id=multikeys(response.json(), 'id'),
             created_at_utc=datetime.fromtimestamp(multikeys(response.json(), 'created_time')),
             text=multikeys(response.json(), 'text'),
-            owner=Profile.from_id(self.loader.context, multikeys(response.json(), 'from', 'id')),
+            owner=Profile.from_id(self.context, multikeys(response.json(), 'from', 'id')),
             likes_count=0
         )
 
@@ -114,9 +125,9 @@ class TlaskyInsta:
             [
                 Notification.from_dict(notification_dict)
                 for notification_dict in multikeys(
-                    response.json(),
-                    'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
-                )
+                response.json(),
+                'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
+            )
             ],
             key=lambda n: n.at,
             reverse=True

@@ -1,5 +1,6 @@
 import os
 import time
+from schedule import Scheduler
 from instaloader import Instaloader, InstaloaderException
 
 from .utils import safe_login
@@ -22,18 +23,23 @@ class AbstractBot:
         self.context = self.loader.context
         safe_login(self.loader, username, password, self.session_file)
         self.insta = TlaskyInsta(self.loader)
+        self.logger = self.insta.logger.getChild('bot')
+        self.scheduler = Scheduler()
 
-    def log(self, *args, **kwargs):
+    def log(self, *args):
         """
         Just print / logging delegate.
         """
-        print(self.context.username, '-', *args, **kwargs)
+        self.logger.info(' '.join([
+            str(arg)
+            for arg in [self.context.username, '-', *args]
+        ]))
 
     def loop(self):
         """
         Main bot function.
         """
-        pass
+        self.scheduler.run_pending()
 
     def on_start(self):
         """
