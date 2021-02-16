@@ -1,6 +1,6 @@
 import os
 from instaloader import Instaloader, Post
-from typing import Dict, Any, Iterable, List
+from typing import Dict, Any, Iterator, List
 
 
 def multikeys(dct: Dict[str, Any], *keys: str, default: Any = None) -> Any:
@@ -13,9 +13,9 @@ def multikeys(dct: Dict[str, Any], *keys: str, default: Any = None) -> Any:
     return result
 
 
-def iterlist(iter: Iterable, n: int = 0) -> List[Any]:
-    return list(iter) if not n else [
-        next(iter)
+def iterlist(iterable: Iterator, n: int = 0) -> List[Any]:
+    return list(iterable) if not n else [
+        next(iterable)
         for _ in range(n)
     ]
 
