@@ -41,9 +41,9 @@ class TlaskyBot(AbstractBot):
         while added_posts < n:
             post = next(iterable)
             if not post.viewer_has_liked and post not in self.posts:
-                self.log(
-                    'Adding', post_url(post),
-                    'by', post.owner_username,
+                self.logger.info(
+                    f'Adding {post_url(post)} '
+                    f'by {post.owner_username} '
                     f'({len(self.posts)} | {self.min_posts})'
                 )
                 self.posts.add(post)
@@ -53,10 +53,10 @@ class TlaskyBot(AbstractBot):
         for notification in self.insta.get_notifications():
             if self.insta.last_notifications_at < notification.at:
                 author = notification.get_user(self.context)
-                self.log(
-                    'Notification', NotificationType.name,
-                    'by', author.username,
-                    post_url(notification.get_media(self.context))
+                self.logger.info(
+                    f'Notification {NotificationType.name} '
+                    f'by {author.username} '
+                    f'{post_url(notification.get_media(self.context))}'
                 )
                 # Like comments and mentions
                 if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):
@@ -79,12 +79,12 @@ class TlaskyBot(AbstractBot):
 
     def _like_post(self):
         post = random.choice(list(self.posts))
-        self.log(
-            'Liking', post_url(post),
-            'by', post.owner_username
+        self.logger.info(
+            f'Liking {post_url(post)} '
+            f'by {post.owner_username}'
         )
         if not self.insta.like_post(post).viewer_has_liked:
-            self.log('Liking is probably banned, removing session file')
+            self.logger.warning('Liking is probably banned, removing session file')
             os.remove(self.session_file)
             raise BotExitException()
         self.posts.remove(post)
@@ -95,12 +95,12 @@ class TlaskyBot(AbstractBot):
 
     def on_start(self):
         if os.path.isfile(self.posts_file):  # Load saved posts
-            self.log('Loading saved posts')
+            self.logger.info('Loading saved posts')
             with open(self.posts_file, 'rb') as file:
                 self.posts = pickle.load(file)
 
     def on_exit(self):
-        self.log('Saving loaded posts')
+        self.logger.info('Saving loaded posts')
         with open(self.posts_file, 'wb') as file:  # Save loaded posts
             pickle.dump(self.posts, file)
 

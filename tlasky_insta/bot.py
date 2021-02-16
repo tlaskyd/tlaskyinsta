@@ -26,15 +26,6 @@ class AbstractBot:
         self.logger = self.insta.logger.getChild('bot')
         self.scheduler = Scheduler()
 
-    def log(self, *args):
-        """
-        Just print / logging delegate.
-        """
-        self.logger.info(' '.join([
-            str(arg)
-            for arg in [self.context.username, '-', *args]
-        ]))
-
     def loop(self):
         """
         Main bot function.

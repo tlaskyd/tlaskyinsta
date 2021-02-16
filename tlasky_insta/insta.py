@@ -27,12 +27,6 @@ class TlaskyInsta:
         # Because context._session is private attribute.
         return getattr(self.context, '_session')
 
-    def _log(self, *args):
-        self.logger.debug(' '.join([
-            str(arg)
-            for arg in args
-        ]))
-
     def _check_response(self, response: Response) -> Response:
         try:
             status = response.json()['status']
@@ -40,11 +34,9 @@ class TlaskyInsta:
             status = str()
         except JSONDecodeError:
             status = '\n' + response.text
-        self._log(
-            response.request.method,
-            response.url,
-            response.status_code,
-            status
+        self.logger.debug(
+            f'{response.request.method} {response.url} {response.status_code} '
+            f'{status}'
         )
         return response
 
@@ -125,9 +117,9 @@ class TlaskyInsta:
             [
                 Notification.from_dict(notification_dict)
                 for notification_dict in multikeys(
-                response.json(),
-                'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
-            )
+                    response.json(),
+                    'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
+                )
             ],
             key=lambda n: n.at,
             reverse=True
