@@ -23,7 +23,7 @@ class TlaskyInsta:
         assert loader.test_login(), 'Please provide logged-in Instaloader.'
         self.loader = loader
         self.context = self.loader.context
-        self.logger = logging.getLogger(self.__class__.__name__.lower())
+        self.logger = logging.getLogger(self.context.username)
         self.last_notifications_at: Union[None, datetime] = None
 
     @property
