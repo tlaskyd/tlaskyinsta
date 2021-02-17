@@ -121,9 +121,9 @@ class TlaskyInsta:
             [
                 Notification.from_dict(notification_dict)
                 for notification_dict in multikeys(
-                response.json(),
-                'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
-            )
+                    response.json(),
+                    'graphql', 'user', 'activity_feed', 'edge_web_activity_feed', 'edges'
+                )
             ],
             key=lambda n: n.at,
             reverse=True
