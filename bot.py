@@ -7,7 +7,7 @@ from itertools import cycle
 from instaloader import Post
 
 from tlasky_insta.utils import post_url
-from tlasky_insta import NotificationType
+from tlasky_insta import Notification, NotificationType
 from tlasky_insta.bot import AbstractBot, run_bots, BotExitException
 
 """
@@ -29,6 +29,7 @@ class TlaskyBot(AbstractBot):
         ])
 
         self.posts: Set[Post] = set()
+        self.last_notification: Union[None, Notification] = None
 
         # Settings
         self.insta.logger.setLevel(logging.INFO)
@@ -42,20 +43,22 @@ class TlaskyBot(AbstractBot):
             post = next(iterable)
             if not post.viewer_has_liked and post not in self.posts:
                 self.logger.info(
-                    f'Adding {post_url(post)} '
-                    f'by {post.owner_username} '
+                    f'Adding {post_url(post)} by {post.owner_username} '
                     f'({len(self.posts)} | {self.min_posts})'
                 )
                 self.posts.add(post)
                 added_posts += 1
 
     def _notifications(self):
-        for notification in self.insta.get_notifications():
-            if self.insta.last_notifications_at < notification.at:
+        notifications = self.insta.get_notifications()
+        if not self.last_notification:
+            self.last_notification = notifications[0]
+            return
+        for notification in notifications:
+            if self.last_notification.at < notification.at:
                 author = notification.get_user(self.context)
                 self.logger.info(
-                    f'Notification {NotificationType.name} '
-                    f'by {author.username} '
+                    f'Notification {NotificationType.name} by {author.username} '
                     f'{post_url(notification.get_media(self.context))}'
                 )
                 # Like comments and mentions
@@ -71,6 +74,8 @@ class TlaskyBot(AbstractBot):
                     stories = list(self.loader.get_stories([author.userid]))[0]
                     for item in stories.get_items():
                         self.insta.seen_story(stories, item)
+        if self.last_notification.at < notifications[0].at:
+            self.last_notification = notifications[0]
         self.insta.mark_notifications()
 
     def _load_posts(self):
@@ -79,10 +84,7 @@ class TlaskyBot(AbstractBot):
 
     def _like_post(self):
         post = random.choice(list(self.posts))
-        self.logger.info(
-            f'Liking {post_url(post)} '
-            f'by {post.owner_username}'
-        )
+        self.logger.info(f'Liking {post_url(post)} by {post.owner_username}')
         if not self.insta.like_post(post).viewer_has_liked:
             self.logger.warning('Liking is probably banned, removing session file')
             os.remove(self.session_file)

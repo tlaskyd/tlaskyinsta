@@ -1,4 +1,3 @@
-from pprint import pprint
 from instaloader import Instaloader
 from tlasky_insta import TlaskyInsta
 from tlasky_insta.utils import safe_login
@@ -13,5 +12,15 @@ safe_login(
 )
 insta = TlaskyInsta(loader)
 
-pprint(insta.get_notifications())
-insta.mark_notifications()
+last_notification = None
+while True:
+    notifications = insta.get_notifications()
+    if not last_notification:
+        last_notification = notifications[0]
+        continue
+    for notification in notifications:
+        if last_notification.at < notification.at:
+            print(notification)
+    if last_notification.at < notifications[0].at:
+        last_notification = notifications[0]
+    insta.mark_notifications()
