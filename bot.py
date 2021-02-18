@@ -42,18 +42,18 @@ class TlaskyBot(AbstractBot):
         while added_posts < n:
             try:
                 post = next(iterable)
+                if not post.viewer_has_liked and post not in self.posts:
+                    self.logger.info(
+                        f'Adding {post_url(post)} by {post.owner_username} '
+                        f'({len(self.posts)} | {self.min_posts})'
+                    )
+                    self.posts.add(post)
+                    added_posts += 1
             except StopIteration:
                 self.logger.warning(
                     f'There are no other posts for {iterable}.'
                 )
                 break
-            if not post.viewer_has_liked and post not in self.posts:
-                self.logger.info(
-                    f'Adding {post_url(post)} by {post.owner_username} '
-                    f'({len(self.posts)} | {self.min_posts})'
-                )
-                self.posts.add(post)
-                added_posts += 1
 
     def _notifications(self):
         notifications = self.insta.get_notifications()
