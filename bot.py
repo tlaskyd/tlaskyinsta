@@ -40,7 +40,13 @@ class TlaskyBot(AbstractBot):
     def __add_posts(self, iterable: Iterator[Post], n: int):
         added_posts = 0
         while added_posts < n:
-            post = next(iterable)
+            try:
+                post = next(iterable)
+            except StopIteration:
+                self.logger.warning(
+                    f'There are no other posts for {iterable}.'
+                )
+                break
             if not post.viewer_has_liked and post not in self.posts:
                 self.logger.info(
                     f'Adding {post_url(post)} by {post.owner_username} '
@@ -69,7 +75,7 @@ class TlaskyBot(AbstractBot):
                             self.insta.like_comment(comment)
                 # Add 5 posts from notification author to posts to like
                 if not author.followed_by_viewer:
-                    self.__add_posts(author.get_posts(), 5)
+                    self.__add_posts(author.get_posts(), 2)
                 # "Watch" authors story
                 if author.has_viewable_story:
                     stories = list(self.loader.get_stories([author.userid]))[0]
