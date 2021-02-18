@@ -20,7 +20,7 @@ while True:
         continue
     for notification in notifications:
         if last_notification.at < notification.at:
-            print(notification)
+            print(notification.type.value, notification)
     if last_notification.at < notifications[0].at:
         last_notification = notifications[0]
     insta.mark_notifications()

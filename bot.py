@@ -57,9 +57,10 @@ class TlaskyBot(AbstractBot):
         for notification in notifications:
             if self.last_notification.at < notification.at:
                 author = notification.get_user(self.context)
+                media = notification.get_media(self.context)
                 self.logger.info(
-                    f'Notification {notification.type.value} by {author.username} '
-                    f'{post_url(notification.get_media(self.context))}'
+                    f'Notification {notification.type.name} by {author.username}'
+                    + f' {post_url(media)}' if media else str()
                 )
                 # Like comments and mentions
                 if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):
