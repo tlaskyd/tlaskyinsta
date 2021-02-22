@@ -55,8 +55,8 @@ def run_bots(*bots: AbstractBot):
     try:
         for bot in bots:
             bot.on_start()
-        while True:  # Don't waist all cpu just for looping.
-            delay = min([
+        while True:
+            delay = min([  # Don't waist all cpu just for looping.
                 bot.scheduler.idle_seconds
                 for bot in bots
             ])
