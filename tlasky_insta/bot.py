@@ -1,5 +1,6 @@
 import os
 import time
+import logging
 from schedule import Scheduler
 from instaloader import Instaloader, InstaloaderException
 
@@ -53,10 +54,12 @@ def run_bots(*bots: AbstractBot):
         for bot in bots:
             bot.on_start()
         while True:  # Don't waist all cpu just for looping.
-            time.sleep(min([
+            delay = min([
                 bot.scheduler.idle_seconds
                 for bot in bots
-            ]))
+            ])
+            logging.info(f'Sleeping for {delay}s.')
+            time.sleep(delay)
             for bot in bots:
                 try:
                     bot.loop()
