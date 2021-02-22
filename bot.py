@@ -29,7 +29,7 @@ class TlaskyBot(AbstractBot):
         ])
 
         self.posts: Set[Post] = set()
-        self.last_notification: Union[None, Notification] = None
+        self.last_notification: Union[None, Notification] = self.insta.get_notifications()[0]
 
         # Settings
         self.insta.logger.setLevel(logging.INFO)
@@ -57,9 +57,6 @@ class TlaskyBot(AbstractBot):
 
     def _notifications(self):
         notifications = self.insta.get_notifications()
-        if not self.last_notification:
-            self.last_notification = notifications[0]
-            return
         for notification in notifications:
             if self.last_notification.at < notification.at:
                 author = notification.get_user(self.context)
