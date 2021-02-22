@@ -66,7 +66,7 @@ class TlaskyBot(AbstractBot):
                 media = notification.get_media(self.context)
                 self.logger.info(
                     f'Notification {notification.type.name} by {author.username}'
-                    + f' {post_url(media)}' if media else str()
+                    + (f' {post_url(media)}' if media else str())
                 )
                 # Like comments and mentions
                 if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):

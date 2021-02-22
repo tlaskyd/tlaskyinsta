@@ -52,16 +52,14 @@ def run_bots(*bots: AbstractBot):
     try:
         for bot in bots:
             bot.on_start()
-        while True:  # Loop all bots max once per seconds (Don't waist all cpu just for looping.)
-            start = time.time()
+        while True:  # Don't waist all cpu just for looping.
             for bot in bots:
                 try:
                     bot.loop()
                 except InstaloaderException:
                     pass
-            took = time.time() - start
-            if took < 1:
-                time.sleep(1 - took)
+            delay = min([bot.scheduler.idle_seconds for bot in bots])
+            time.sleep(delay)
     except (KeyboardInterrupt, BotExitException):
         pass
     finally:
