@@ -42,7 +42,7 @@ class AbstractBot:
         """
         Here you can save your stuff.
         """
-        pass
+        self.loader.save_session_to_file(self.session_file)
 
 
 def run_bots(*bots: AbstractBot):
@@ -58,8 +58,10 @@ def run_bots(*bots: AbstractBot):
                     bot.loop()
                 except InstaloaderException:
                     pass
-            delay = min([bot.scheduler.idle_seconds for bot in bots])
-            time.sleep(delay)
+            time.sleep(min([
+                bot.scheduler.idle_seconds
+                for bot in bots
+            ]))
     except (KeyboardInterrupt, BotExitException):
         pass
     finally:

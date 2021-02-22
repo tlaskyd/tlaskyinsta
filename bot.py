@@ -109,6 +109,7 @@ class TlaskyBot(AbstractBot):
                 self.posts = pickle.load(file)
 
     def on_exit(self):
+        super().on_exit()
         self.logger.info('Saving loaded posts')
         with open(self.posts_file, 'wb') as file:  # Save loaded posts
             pickle.dump(self.posts, file)
@@ -117,8 +118,7 @@ class TlaskyBot(AbstractBot):
 if __name__ == '__main__':
     from config import usernames_passwords, interests
 
-    bots = {  # Create dict for future management
-        username: TlaskyBot(username, password, interests)
+    run_bots(*(
+        TlaskyBot(username, password, interests)
         for username, password in usernames_passwords
-    }
-    run_bots(*bots.values())
+    ))
