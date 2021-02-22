@@ -1,7 +1,9 @@
 import os
 import time
 import logging
+from datetime import timedelta
 from schedule import Scheduler
+from humanize import naturaldelta
 from instaloader import Instaloader, InstaloaderException
 
 from .utils import safe_login
@@ -58,7 +60,7 @@ def run_bots(*bots: AbstractBot):
                 bot.scheduler.idle_seconds
                 for bot in bots
             ])
-            logging.info(f'Sleeping for {delay}s.')
+            logging.info(f'Sleeping for {naturaldelta(timedelta(seconds=delay))}.')
             time.sleep(delay)
             for bot in bots:
                 try:

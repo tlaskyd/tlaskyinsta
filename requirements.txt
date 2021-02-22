@@ -1,4 +1,4 @@
 instaloader
 requests
-
+humanize
 schedule
