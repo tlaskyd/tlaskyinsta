@@ -1,9 +1,6 @@
 import os
 import time
-import logging
-from datetime import timedelta
 from schedule import Scheduler
-from humanize import precisedelta
 from instaloader import Instaloader, InstaloaderException
 
 from .utils import safe_login
@@ -67,7 +64,9 @@ def run_bots(*bots: AbstractBot):
                 except InstaloaderException:
                     pass
             if scheduler_delay > 1:  # Regulate looping speed (Don't waist CPU)
-                time.sleep(1 - (time.time() - start))
+                delay = 1 - (time.time() - start)
+                if delay > 0:
+                    time.sleep(delay)
     except (KeyboardInterrupt, BotExitException):
         pass
     finally:
