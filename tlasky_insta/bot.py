@@ -56,13 +56,12 @@ def run_bots(*bots: AbstractBot):
         for bot in bots:
             bot.on_start()
         while True:
-            delay = min([  # Don't waist all cpu just for looping.
+            delay = abs(min([  # Don't waist all cpu just for looping.
                 bot.scheduler.idle_seconds
                 for bot in bots
-            ])
-            if delay > 0:
-                logging.info(f'Sleeping for {naturaldelta(timedelta(seconds=delay))}.')
-                time.sleep(delay)
+            ]))
+            logging.info(f'Sleeping for {naturaldelta(timedelta(seconds=delay))}.')
+            time.sleep(delay)
             for bot in bots:
                 try:
                     bot.loop()
