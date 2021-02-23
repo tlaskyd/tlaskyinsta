@@ -3,7 +3,7 @@ import time
 import logging
 from datetime import timedelta
 from schedule import Scheduler
-from humanize import naturaldelta
+from humanize import precisedelta
 from instaloader import Instaloader, InstaloaderException
 
 from .utils import safe_login
@@ -52,15 +52,15 @@ def run_bots(*bots: AbstractBot):
     """
     This function will run any bots.
     """
+    for bot in bots:
+        bot.on_start()
     try:
-        for bot in bots:
-            bot.on_start()
         while True:
             delay = abs(min([  # Don't waist all cpu just for looping.
                 bot.scheduler.idle_seconds
                 for bot in bots
             ]))
-            logging.info(f'Sleeping for {naturaldelta(timedelta(seconds=delay))}.')
+            logging.info(f'Sleeping for {precisedelta(timedelta(seconds=delay))}.')
             time.sleep(delay)
             for bot in bots:
                 try:
