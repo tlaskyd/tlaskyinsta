@@ -56,17 +56,18 @@ def run_bots(*bots: AbstractBot):
         bot.on_start()
     try:
         while True:
-            delay = abs(min([  # Don't waist all cpu just for looping.
+            start = time.time()
+            scheduler_delay = min([
                 bot.scheduler.idle_seconds
                 for bot in bots
-            ]))
-            logging.info(f'Sleeping for {precisedelta(timedelta(seconds=delay))}.')
-            time.sleep(delay)
+            ])
             for bot in bots:
                 try:
                     bot.loop()
                 except InstaloaderException:
                     pass
+            if scheduler_delay > 1:  # Regulate looping speed (Don't waist CPU)
+                time.sleep(1 - (time.time() - start))
     except (KeyboardInterrupt, BotExitException):
         pass
     finally:
