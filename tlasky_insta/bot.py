@@ -60,8 +60,9 @@ def run_bots(*bots: AbstractBot):
                 bot.scheduler.idle_seconds
                 for bot in bots
             ])
-            logging.info(f'Sleeping for {naturaldelta(timedelta(seconds=delay))}.')
-            time.sleep(delay)
+            if delay > 0:
+                logging.info(f'Sleeping for {naturaldelta(timedelta(seconds=delay))}.')
+                time.sleep(delay)
             for bot in bots:
                 try:
                     bot.loop()
