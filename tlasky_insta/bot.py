@@ -26,17 +26,17 @@ class AbstractBot:
         self.logger = self.insta.logger
         self.scheduler = Scheduler()
 
-    def loop(self):
-        """
-        Main bot function.
-        """
-        self.scheduler.run_pending()
-
     def on_start(self):
         """
         Here you can load your stuff.
         """
         pass
+
+    def loop(self):
+        """
+        Main bot function.
+        """
+        self.scheduler.run_pending()
 
     def on_exit(self):
         """

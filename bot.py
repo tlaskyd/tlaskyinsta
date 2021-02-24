@@ -95,15 +95,15 @@ class TlaskyBot(AbstractBot):
             raise BotExitException()
         self.posts.remove(post)
 
-    def loop(self):
-        self._load_posts()
-        super().loop()
-
     def on_start(self):
         if os.path.isfile(self.posts_file):  # Load saved posts
             self.logger.info('Loading saved posts')
             with open(self.posts_file, 'rb') as file:
                 self.posts = pickle.load(file)
+
+    def loop(self):
+        self._load_posts()
+        super().loop()
 
     def on_exit(self):
         super().on_exit()
