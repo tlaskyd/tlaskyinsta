@@ -45,7 +45,7 @@ class AbstractBot:
         self.loader.save_session_to_file(self.session_file)
 
 
-def run_bots(*bots: AbstractBot):
+def run_bots(*bots: AbstractBot, min_delay: float = 1):
     """
     This function will run any bots.
     """
@@ -54,19 +54,14 @@ def run_bots(*bots: AbstractBot):
     try:
         while True:
             start = time.time()
-            scheduler_delay = min([
-                bot.scheduler.idle_seconds
-                for bot in bots
-            ])
             for bot in bots:
                 try:
                     bot.loop()
                 except InstaloaderException:
                     pass
-            if scheduler_delay > 1:  # Regulate looping speed (Don't waist CPU)
-                delay = 1 - (time.time() - start)
-                if delay > 0:
-                    time.sleep(delay)
+            delay = min_delay - (time.time() - start)
+            if delay > 0:
+                time.sleep(delay)
     except (KeyboardInterrupt, BotExitException):
         pass
     finally:
