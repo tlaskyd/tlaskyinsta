@@ -59,7 +59,9 @@ def run_bots(*bots: AbstractBot, min_delay: float = 1):
                     bot.scheduler.run_pending()
                 except InstaloaderException:
                     pass
-            delay = min_delay - (time.time() - start)
+            schedulers_delay = min(bot.scheduler.idle_seconds for bot in bots)
+            loop_delay = min_delay - (time.time() - start)
+            delay = min(loop_delay, schedulers_delay)
             if delay > 0:
                 time.sleep(delay)
     except (KeyboardInterrupt, BotExitException):
