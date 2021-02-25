@@ -113,6 +113,13 @@ class TlaskyBot(AbstractBot):
 if __name__ == '__main__':
     from config import usernames_passwords, interests
 
+    try:
+        import coloredlogs
+
+        coloredlogs.install()
+    except ImportError:
+        pass
+
     run_bots(*(
         TlaskyBot(username, password, interests)
         for username, password in usernames_passwords
