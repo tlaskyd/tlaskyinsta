@@ -34,7 +34,7 @@ class TlaskyBot(AbstractBot):
         # Settings
         self.insta.logger.setLevel(logging.INFO)
         self.min_posts = 10
-        self.scheduler.every(2).minutes.do(self.process_notifications)
+        self.scheduler.every(1).minute.do(self.process_notifications)
         self.scheduler.every(15).to(20).minutes.do(self.like_post)
 
     def add_posts(self, iterable: Iterator[Post], n: int):
@@ -51,11 +51,12 @@ class TlaskyBot(AbstractBot):
                     added_posts += 1
             except StopIteration:
                 self.logger.warning(
-                    f'There are no other posts for {iterable}.'
+                    f'There are no other posts for {iterable}'
                 )
                 break
 
     def process_notifications(self):
+        self.logger.info('Checking notifications')
         notifications = self.insta.get_notifications()
         for notification in notifications:
             if self.last_notification.at < notification.at:
@@ -82,13 +83,12 @@ class TlaskyBot(AbstractBot):
             self.last_notification = notifications[0]
         self.insta.mark_notifications()
 
-    def refill_posts(self):
-        while len(self.posts) <= self.min_posts:
-            self.add_posts(next(self.interests_iterators), 1)
-
     def like_post(self):
         post = random.choice(list(self.posts))
-        self.logger.info(f'Liking {post_url(post)} by {post.owner_username}')
+        self.logger.info(
+            f'Liking {post_url(post)} by {post.owner_username} '
+            f'({len(self.posts)} | {self.min_posts})'
+        )
         if not self.insta.like_post(post).viewer_has_liked:
             self.logger.warning('Liking is probably banned, removing session file')
             os.remove(self.session_file)
@@ -102,7 +102,8 @@ class TlaskyBot(AbstractBot):
                 self.posts = pickle.load(file)
 
     def loop(self):
-        self.refill_posts()
+        while len(self.posts) <= self.min_posts:  # Refilling posts
+            self.add_posts(next(self.interests_iterators), 1)
 
     def on_exit(self):
         self.logger.info('Saving loaded posts')
