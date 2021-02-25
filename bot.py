@@ -103,7 +103,6 @@ class TlaskyBot(AbstractBot):
 
     def loop(self):
         self.refill_posts()
-        super().loop()
 
     def on_exit(self):
         self.logger.info('Saving loaded posts')
