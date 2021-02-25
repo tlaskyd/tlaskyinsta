@@ -36,7 +36,6 @@ class AbstractBot:
         """
         Main bot function.
         """
-        self.scheduler.run_pending()
 
     def on_exit(self):
         """
@@ -57,6 +56,7 @@ def run_bots(*bots: AbstractBot, min_delay: float = 1):
             for bot in bots:
                 try:
                     bot.loop()
+                    bot.scheduler.run_pending()
                 except InstaloaderException:
                     pass
             delay = min_delay - (time.time() - start)
