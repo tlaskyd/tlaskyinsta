@@ -1,6 +1,6 @@
 import os
 from instaloader import Instaloader, Post
-from typing import Dict, Any, Iterator, List, Union
+from typing import Dict, Any, Iterator, List
 
 
 def multikeys(dct: Dict[str, Any], *keys: str, default: Any = None) -> Any:
@@ -29,4 +29,5 @@ def safe_login(loader: Instaloader, username: str, password: str, session_path: 
 
 
 def post_url(post: Post) -> str:
+    """Instagram url for post"""
     return f'https://instagram.com/p/{post.shortcode}'
