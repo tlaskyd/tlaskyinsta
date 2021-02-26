@@ -6,4 +6,4 @@ venv/
 
 config.py
 david_tlaskal_session.pickle
-david_tlaskal_posts.pickle
+david_tlaskal_posts.json

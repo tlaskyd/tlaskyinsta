@@ -15,9 +15,8 @@ class BotExitException(Exception):
 
 
 class AbstractBot:
-    def __init__(self, username: str, password: str, data_path: str = './'):
-        self.session_file = os.path.join(data_path, f'{username}_session.pickle')
-        self.posts_file = os.path.join(data_path, f'{username}_posts.pickle')
+    def __init__(self, username: str, password: str, **kwargs):
+        self.session_file = kwargs.get('session_path', f'./{username}_session.pickle')
 
         self.loader = Instaloader()
         self.context = self.loader.context
@@ -59,9 +58,10 @@ def run_bots(*bots: AbstractBot, min_delay: float = 1):
                     bot.scheduler.run_pending()
                 except InstaloaderException:
                     pass
-            schedulers_delay = min(bot.scheduler.idle_seconds for bot in bots)
-            loop_delay = min_delay - (time.time() - start)
-            delay = min(loop_delay, schedulers_delay)
+            delay = min(
+                min(bot.scheduler.idle_seconds for bot in bots),  # Scheduler delay
+                min_delay - (time.time() - start)  # Loop delay
+            )
             if delay > 0:
                 time.sleep(delay)
     except (KeyboardInterrupt, BotExitException):

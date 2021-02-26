@@ -1,6 +1,6 @@
 import os
 from instaloader import Instaloader, Post
-from typing import Dict, Any, Iterator, List
+from typing import Dict, Any, Iterator, List, Union
 
 
 def multikeys(dct: Dict[str, Any], *keys: str, default: Any = None) -> Any:
