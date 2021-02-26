@@ -16,9 +16,8 @@ This is a simple bot example. It is used to farm followers.
 
 
 class TlaskyBot(AbstractBot):
-    def __init__(self, username: str, password: str, interests: List[Union[str, int]]):
-        super().__init__(username, password)
-
+    def __init__(self, username: str, password: str, interests: List[Union[str, int]], **kwargs):
+        super().__init__(username, password, **kwargs)
         self.insta.quiet = True
 
         self.interests_iterators = cycle([
@@ -27,7 +26,6 @@ class TlaskyBot(AbstractBot):
             self.loader.get_hashtag_posts(interest)
             for interest in interests
         ])
-
         self.posts: Set[str] = set()
         self.last_notification: Union[None, Notification] = self.insta.get_notifications()[0]
 
