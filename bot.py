@@ -42,7 +42,7 @@ class TlaskyBot(AbstractBot):
             try:
                 post = next(iterable)
                 if not post.viewer_has_liked and post not in self.posts:
-                    self.logger.info(f'Adding {post_url(post)} by {post.owner_username} ({len(self.posts)})')
+                    self.logger.info(f'Adding {post_url(post)} by {post.owner_username} ({len(self.posts)}+1)')
                     self.posts.add(post.shortcode)
                     added_posts += 1
             except StopIteration:
@@ -93,7 +93,7 @@ class TlaskyBot(AbstractBot):
                 self.posts.update(json.load(file))
 
     def loop(self):
-        while len(self.posts) <= self.min_posts:  # Refilling posts
+        while len(self.posts) < self.min_posts:  # Refilling posts
             self.add_posts(next(self.interests_iterators), 1)
 
     def on_exit(self):
