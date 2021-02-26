@@ -45,7 +45,7 @@ class TlaskyBot(AbstractBot):
                 if not post.viewer_has_liked and post not in self.posts:
                     self.logger.info(
                         f'Adding {post_url(post)} by {post.owner_username} '
-                        f'({len(self.posts)} | {self.min_posts})'
+                        f'({len(self.posts)})'
                     )
                     self.posts.add(post)
                     added_posts += 1
@@ -87,7 +87,7 @@ class TlaskyBot(AbstractBot):
         post = random.choice(list(self.posts))
         self.logger.info(
             f'Liking {post_url(post)} by {post.owner_username} '
-            f'({len(self.posts)} | {self.min_posts})'
+            f'({len(self.posts)})'
         )
         if not self.insta.like_post(post).viewer_has_liked:
             self.logger.warning('Liking is probably banned, removing session file')
