@@ -50,7 +50,6 @@ class TlaskyBot(AbstractBot):
                 break
 
     def process_notifications(self):
-        self.logger.info('Checking notifications')
         notifications = self.insta.get_notifications()
         for notification in notifications:
             if self.last_notification.at < notification.at:
