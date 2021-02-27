@@ -46,7 +46,7 @@ class TlaskyBot(AbstractBot):
                     self.posts.add(post.shortcode)
                     added_posts += 1
             except StopIteration:
-                self.logger.warning(f'There are no other posts for {iterable}')
+                self.logger.warning(f'There are no other posts or it\'s a private profile.')
                 break
 
     def process_notifications(self):
@@ -63,14 +63,16 @@ class TlaskyBot(AbstractBot):
                 if notification.type in (NotificationType.COMMENT, NotificationType.COMMENT_MENTION):
                     for comment in notification.get_media(self.context).get_comments():
                         if comment.text == notification.text:
+                            self.logger.info(f'Liking comment by {author.username} at {post_url(media)}')
                             self.insta.like_comment(comment)
                 # Add posts from notification author to posts to like
-                if not author.followed_by_viewer:
+                if not author.followed_by_viewer and not author.is_private:
                     self.add_posts(author.get_posts(), 2)
                 # "Watch" authors story
                 if author.has_viewable_story:
                     stories = list(self.loader.get_stories([author.userid]))[0]
                     for item in stories.get_items():
+                        self.logger.info(f'Watching story by {author.username}')
                         self.insta.seen_story(stories, item)
         if self.last_notification.at < notifications[0].at:
             self.last_notification = notifications[0]
