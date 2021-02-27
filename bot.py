@@ -11,7 +11,7 @@ from tlasky_insta import Notification, NotificationType
 from tlasky_insta.bot import AbstractBot, run_bots, BotExitException
 
 """
-This is a simple bot example. It is used to farm followers. 
+This is a simple bot example. It is used to farm followers.
 """
 
 
@@ -34,7 +34,7 @@ class TlaskyBot(AbstractBot):
         self.insta.logger.setLevel(logging.INFO)
         self.min_posts = 10
         self.scheduler.every(1).minute.do(self.process_notifications)
-        self.scheduler.every(15).to(20).minutes.do(self.like_post)
+        self.scheduler.every(20).to(30).minutes.do(self.like_post)
 
     def add_posts(self, iterable: Iterator[Post], n: int):
         added_posts = 0
