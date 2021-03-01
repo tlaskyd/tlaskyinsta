@@ -91,10 +91,10 @@ class TlaskyBot(BaseBot):
         if os.path.isfile(self.posts_file):  # Load saved posts
             self.logger.info('Loading saved posts')
             with open(self.posts_file, 'r') as file:
-                self.posts = list(set(
+                self.posts = list({
                     *self.posts,
                     *json.load(file)
-                ))
+                })
 
     def loop(self):
         if len(self.posts) < self.min_posts:  # Refilling posts
