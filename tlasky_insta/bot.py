@@ -1,4 +1,3 @@
-import os
 import time
 from schedule import Scheduler
 from instaloader import Instaloader, InstaloaderException
@@ -14,7 +13,7 @@ class BotExitException(Exception):
     pass
 
 
-class AbstractBot:
+class BaseBot:
     def __init__(self, username: str, password: str, **kwargs):
         self.session_file = kwargs.get('session_path', f'./{username}_session.pickle')
 
@@ -43,7 +42,7 @@ class AbstractBot:
         self.loader.save_session_to_file(self.session_file)
 
 
-def run_bots(*bots: AbstractBot, min_delay: float = 1):
+def run_bots(*bots: BaseBot, min_delay: float = 1):
     """
     This function will run any bots.
     """

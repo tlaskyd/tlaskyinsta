@@ -1,6 +1,5 @@
 import os
 import json
-import random
 import logging
 from typing import *
 from itertools import cycle
@@ -8,14 +7,14 @@ from instaloader import Post
 
 from tlasky_insta.utils import post_url
 from tlasky_insta import Notification, NotificationType
-from tlasky_insta.bot import AbstractBot, run_bots, BotExitException
+from tlasky_insta.bot import BaseBot, run_bots, BotExitException
 
 """
 This is a simple bot example. It is used to farm followers.
 """
 
 
-class TlaskyBot(AbstractBot):
+class TlaskyBot(BaseBot):
     def __init__(self, username: str, password: str, interests: List[Union[str, int]], **kwargs):
         super().__init__(username, password, **kwargs)
         self.insta.quiet = True
@@ -26,7 +25,7 @@ class TlaskyBot(AbstractBot):
             self.loader.get_hashtag_posts(interest)
             for interest in interests
         ])
-        self.posts: Set[str] = set()
+        self.posts: List[str] = list()
         self.last_notification: Union[None, Notification] = self.insta.get_notifications()[0]
 
         # Settings
@@ -36,14 +35,14 @@ class TlaskyBot(AbstractBot):
         self.scheduler.every(1).minute.do(self.process_notifications)
         self.scheduler.every(20).to(30).minutes.do(self.like_post)
 
-    def add_posts(self, iterable: Iterator[Post], n: int):
+    def add_posts(self, iterable: Iterator[Post], count: int = 1, index: int = -1):
         added_posts = 0
-        while added_posts < n:
+        while added_posts < count:
             try:
                 post = next(iterable)
-                if not post.viewer_has_liked and post not in self.posts:
+                if not post.viewer_has_liked and post.shortcode not in self.posts:
                     self.logger.info(f'Adding {post_url(post)} by {post.owner_username} ({len(self.posts)}+1)')
-                    self.posts.add(post.shortcode)
+                    self.posts.insert(index, post.shortcode)
                     added_posts += 1
             except StopIteration:
                 self.logger.warning(f'There are no other posts or it\'s a private profile.')
@@ -67,7 +66,7 @@ class TlaskyBot(AbstractBot):
                             self.insta.like_comment(comment)
                 # Add posts from notification author to posts to like
                 if not author.followed_by_viewer and not author.is_private:
-                    self.add_posts(author.get_posts(), 2)
+                    self.add_posts(author.get_posts(), count=2, index=0)
                 # "Watch" authors story
                 if author.has_viewable_story:
                     stories = list(self.loader.get_stories([author.userid]))[0]
@@ -79,7 +78,7 @@ class TlaskyBot(AbstractBot):
         self.insta.mark_notifications()
 
     def like_post(self):
-        shortcode = random.choice(list(self.posts))
+        shortcode = list(self.posts).pop(0)
         post = Post.from_shortcode(self.context, shortcode)
         self.logger.info(f'Liking {post_url(post)} by {post.owner_username} ({len(self.posts)})')
         if not self.insta.like_post(post).viewer_has_liked:
@@ -92,17 +91,20 @@ class TlaskyBot(AbstractBot):
         if os.path.isfile(self.posts_file):  # Load saved posts
             self.logger.info('Loading saved posts')
             with open(self.posts_file, 'r') as file:
-                self.posts.update(json.load(file))
+                self.posts = list(set(
+                    *self.posts,
+                    *json.load(file)
+                ))
 
     def loop(self):
-        while len(self.posts) < self.min_posts:  # Refilling posts
+        if len(self.posts) < self.min_posts:  # Refilling posts
             self.add_posts(next(self.interests_iterators), 1)
 
     def on_exit(self):
         self.logger.info('Saving loaded posts')
         with open(self.posts_file, 'w') as file:  # Save loaded posts
             json.dump(
-                list(self.posts), file,
+                self.posts, file,
                 indent=4, sort_keys=True
             )
 
