@@ -32,8 +32,8 @@ class TlaskyBot(BaseBot):
         self.posts_file = f'./{username}_posts.json'
         self.insta.logger.setLevel(logging.INFO)
         self.min_posts = 10
-        self.scheduler.every(1).minute.do(self.process_notifications)
-        self.scheduler.every(20).to(30).minutes.do(self.like_post)
+        self.scheduler.every(5).minutes.do(self.process_notifications)
+        self.scheduler.every(30).to(45).minutes.do(self.like_post)
 
     def add_posts(self, iterable: Iterator[Post], count: int = 1, index: int = -1):
         added_posts = 0
@@ -69,9 +69,9 @@ class TlaskyBot(BaseBot):
                     self.add_posts(author.get_posts(), count=2, index=0)
                 # "Watch" authors story
                 if author.has_viewable_story:
+                    self.logger.info(f'Watching story by {author.username}')
                     stories = list(self.loader.get_stories([author.userid]))[0]
                     for item in stories.get_items():
-                        self.logger.info(f'Watching story by {author.username}')
                         self.insta.seen_story(stories, item)
         if self.last_notification.at < notifications[0].at:
             self.last_notification = notifications[0]
