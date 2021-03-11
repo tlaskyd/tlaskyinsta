@@ -1,9 +1,11 @@
 import os
 import json
+import time
 import logging
 from typing import *
+from random import uniform
 from itertools import cycle
-from instaloader import Post
+from instaloader import Post, RateController
 
 from tlasky_insta.utils import post_url
 from tlasky_insta import Notification, NotificationType
@@ -14,9 +16,24 @@ This is a simple bot example. It is used to farm followers.
 """
 
 
+class TlaskyRateController(RateController):
+    def wait_before_query(self, query_type: str) -> None:
+        pass
+
+    def handle_429(self, query_type: str) -> None:
+        delay = uniform(60 * 30, 60 * 60)
+        print(f'Too many requests! Sleeping for {round(delay, 2)}s, then exit.')
+        time.sleep(delay)
+        raise BotExitException('Too many requests, exiting...')
+
+
 class TlaskyBot(BaseBot):
     def __init__(self, username: str, password: str, interests: List[Union[str, int]], **kwargs):
-        super().__init__(username, password, **kwargs)
+        super().__init__(
+            username, password,
+            loader_kwargs=dict(rate_controller=TlaskyRateController),
+            **kwargs
+        )
         self.insta.quiet = True
 
         self.interests_iterators = cycle([

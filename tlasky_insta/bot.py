@@ -14,10 +14,10 @@ class BotExitException(Exception):
 
 
 class BaseBot:
-    def __init__(self, username: str, password: str, **kwargs):
+    def __init__(self, username: str, password: str, loader_kwargs: dict = None, **kwargs):
         self.session_file = kwargs.get('session_path', f'./{username}_session.pickle')
 
-        self.loader = Instaloader()
+        self.loader = Instaloader(**(loader_kwargs or dict()))
         self.context = self.loader.context
         safe_login(self.loader, username, password, self.session_file)
         self.insta = TlaskyInsta(self.loader)
